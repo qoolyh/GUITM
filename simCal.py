@@ -9,6 +9,7 @@ import gensim
 # import ElemSim
 #
 
+print(os.path.abspath('GoogleNews.bin'))
 model = gensim.models.KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin', binary=True, limit= 500000)
 
 def w2v_sim(w_from, w_to):
@@ -150,6 +151,7 @@ def graphSim_W2V(src_elems, tar_elems):
 
     return (idScore + textScore + descScore) / 3
 
+
 def graphSim_TFIDF(src_elems, tar_elems):
     # return 0.0001
     resID1 = []
@@ -256,3 +258,81 @@ def getFileDir(path):
         for d in dirs:
             ds.append(d)
     return d
+
+
+def elem_sim(tgt_elem, src_elem, prev_tgt_elem_info, e_sim_cache):
+    if not src_elem:
+        return 0
+    length = 0
+    if not isinstance(tgt_elem, list) and tgt_elem["type"] == "back":
+        if src_elem["event_type"] == "SYS_EVENT" and src_elem["action"][0] == "KEY_BACK":
+            return 1
+        else:
+            return 0
+    if src_elem["action"][0] == "KEY_BACK":
+        return 0
+    tgt_id = ""
+    tgt_key = ''
+    if isinstance(tgt_elem, list):
+        # print('1111111111------------')
+        length = len(tgt_elem)
+        if tgt_elem[length - 1]['resource-id'].find("/") != -1:
+            tgt_id = tgt_elem[length - 1]['resource-id'].split("/")[1]
+        else:
+            tgt_id = tgt_elem[length - 1]['resource-id']
+        key = str('tar' + tgt_id + ' ' + tgt_elem[length - 1]['index']) + "_" + str(src_elem['id'] + "_list")
+        tgt_key = tgt_elem[length - 1]['resource-id']+'_'+tgt_elem[length - 1]['bounds']
+    else:
+        if tgt_elem['resource-id'].find("/") != -1:
+            tgt_id = tgt_elem['resource-id'].split("/")[1]
+        else:
+            tgt_id = tgt_elem['resource-id']
+        key = str('tar' + tgt_id + ' ' + tgt_elem['index']) + "_" + str(src_elem['id'])
+        tgt_key = tgt_elem['resource-id']+'_'+tgt_elem['bounds']
+    if (tgt_elem['resource-id'] == 'com.contextlogic.geek:id/create_wishlist_name_text'):
+        a=1
+    src_id = src_elem['id']
+    if length == 0:
+        tgt_txt = tgt_elem['text']
+        tgt_cls = tgt_elem['class']
+        tgt_desc = tgt_elem['content-desc']
+    else:
+        tgt_txt = tgt_elem[length - 1]['text']
+        tgt_cls = tgt_elem[length - 1]['class']
+        tgt_desc = tgt_elem[length - 1]['content-desc']
+    if prev_tgt_elem_info[tgt_key] == 1:
+        return 0
+    if key in e_sim_cache:
+        return e_sim_cache[key]
+    else:
+
+        if src_id == "tipPercentET":
+            a = 1
+
+        src_txt = src_elem['text']
+        src_cls = src_elem['class']
+        src_desc = src_elem['content-desc']
+
+        clsMatch = False
+        for key in StrUtil.CLASS_CATEGORY:
+            if key in src_cls.lower():
+                for cls in StrUtil.CLASS_CATEGORY[key]:
+                    if cls in tgt_cls.lower():
+                        clsMatch = True
+                        break
+                if clsMatch:
+                    break
+        if tgt_txt.isnumeric() and src_txt.isnumeric():
+            contentScore = 1.0
+        else:
+            contentScore = arraySim(StrUtil.tokenize("text", tgt_txt), StrUtil.tokenize("text", src_txt))
+        idScore = arraySim(StrUtil.tokenize("resource-id", tgt_id), StrUtil.tokenize("resource-id", src_id))
+        descScore = arraySim(StrUtil.tokenize("content-desc", tgt_desc), StrUtil.tokenize("content-desc", src_desc))
+        v = contentScore + idScore + descScore# + clsScore
+        v /= 3
+
+        if not clsMatch:
+            v -= 0.3
+
+        e_sim_cache.update({key: v})
+    return v
