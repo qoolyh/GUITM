@@ -4,6 +4,7 @@ import math
 import time
 
 from Evaluation import evaluate
+from Recorder import records
 from Util import init_elem_info, getPath, update_record
 from simCal import *
 from GlobleData import Gol
@@ -68,7 +69,7 @@ def GBTM(): # SRC and TGT are arrays which record the activities
             prev_t = t_i['activity']
             path.extend(path_i[0])
             res.append(t_i)
-    evaluate(res, path)
+    records(res, path)
 
 
 

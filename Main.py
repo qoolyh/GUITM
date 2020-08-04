@@ -18,7 +18,7 @@ srcGroups = [
 tarGroups = [
              # ['a13'],
              # ['a11', 'a12', 'a13', 'a14', 'a15'],
-             ['a23', 'a24', 'a25'],
+             ['a21', 'a22','a23', 'a24', 'a25'],
              ['a21', 'a22', 'a23', 'a24', 'a25'],
              # ['a31', 'a32', 'a33', 'a35'],
              # ['a31', 'a32', 'a33', 'a35'],
@@ -77,4 +77,5 @@ for i in range(len(cates)):
                 tgt_start = start_act[tar]
 
                 initAll(src_json, tar_json, test_json, sim_json, pair, tgt_start, cate, src, tar)
+                print('running...src=',src,' tgt=',tar)
                 GBTM()
