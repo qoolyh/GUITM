@@ -31,6 +31,7 @@ def initAll(src_json, tar_json, test_json, sim_json, pair, tgt_start, cate, src,
 
 
 def initSrcDict(SRC_G, T):
+    # remove the triggered elements in the same activity
     src_elem_dicts_minus = []
     for i in range(len(T)):
         if "activity" not in T[i]:
@@ -41,7 +42,7 @@ def initSrcDict(SRC_G, T):
         prev_idx = i - 1
         if T[curr_idx]["class"] == "SYS_EVENT":
             elems = deleteElem(SRC_G[T[prev_idx]["activity"]].elements, T[prev_idx])
-        else:
+        elif T[curr_idx]["event_type"] != "oracle":
             elems = deleteElem(SRC_G[T[curr_idx]["activity"]].elements, T[curr_idx])
         src_elem_dicts_minus.append(elems)
 

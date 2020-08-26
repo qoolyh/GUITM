@@ -139,6 +139,46 @@ def parse_graph_json(json_dir):
 
 
 
+# def parse_test_file(json_dir):
+#     test_list = []
+#     file = open(json_dir, "rb")
+#     tests = json.load(file)
+#     idx = 0
+#     cursor = 0
+#     for t in tests:
+#         cursor += 1
+#         mtype = t['event_type']
+#         # if idx == 0 and mtype == 'oracle':
+#         if mtype == 'oracle':
+#             if idx > 0:
+#                 pass_to_prev(t, test_list, idx - 1)
+#             if cursor != len(tests):
+#                 continue
+#         if mtype == 'SYS_EVENT':
+#             test_list.append(t)
+#             idx += 1
+#             continue
+#         # if type != 'oracle':
+#         id = t['resource-id']
+#         sup = ':id/'
+#         tmp = id
+#         if len(id) > 0:
+#             tmp = id[id.index(sup) + len(sup):len(id)]
+#         id = tmp
+#         t['id'] = id
+#         text = t['text']
+#         act = t['activity']
+#         pwd = t['password']
+#         clickable = t['clickable']
+#         cls = t['class']
+#         desc = t['content-desc']
+#         e = Element(idx, id, cls, text, desc, 'false', 'false', clickable, 'false', 'false', 'false', pwd, mtype)
+#         test_list.append(t)
+#         idx += 1
+#
+#     return test_list
+
+
 def parse_test_file(json_dir):
     test_list = []
     file = open(json_dir, "rb")
@@ -146,35 +186,26 @@ def parse_test_file(json_dir):
     idx = 0
     cursor = 0
     for t in tests:
-        cursor += 1
-        mtype = t['event_type']
-        # if idx == 0 and mtype == 'oracle':
-        if mtype == 'oracle':
-            if idx > 0:
-                pass_to_prev(t, test_list, idx - 1)
-            if cursor != len(tests):
-                continue
-        if mtype == 'SYS_EVENT':
+        type = t['event_type']
+        if t.__contains__('resource-id'):
+            t['id'] = t['resource-id']
+        else:
+            t['id'] = ''
+        if type == 'oracle':
+            if idx != 0:
+                if test_list[idx-1]['class'] == 'SYS_EVENT':
+                    if t['activity'] == test_list[idx-2]['activity']:
+                        test_list[idx - 2]['oracle'] = t
+                else:
+                    if t['activity'] == test_list[idx-1]['activity']:
+                        test_list[idx - 1]['oracle'] = t
+            else:
+                test_list.append(t)
+                idx += 1
+        elif type == 'SYS_EVENT':
             test_list.append(t)
             idx += 1
-            continue
-        # if type != 'oracle':
-        id = t['resource-id']
-        sup = ':id/'
-        tmp = id
-        if len(id) > 0:
-            tmp = id[id.index(sup) + len(sup):len(id)]
-        id = tmp
-        t['id'] = id
-        text = t['text']
-        act = t['activity']
-        pwd = t['password']
-        clickable = t['clickable']
-        cls = t['class']
-        desc = t['content-desc']
-        e = Element(idx, id, cls, text, desc, 'false', 'false', clickable, 'false', 'false', 'false', pwd, mtype)
-        test_list.append(t)
-        idx += 1
-
+        else:
+            test_list.append(t)
+            idx += 1
     return test_list
-
