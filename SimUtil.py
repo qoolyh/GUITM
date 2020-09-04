@@ -15,6 +15,7 @@ def w2v_sim(w_from, w_to):
         sim = 0
     return sim
 
+
 def arraySim(strArray, strArray2):
     scores = []
     # valid_new_words = []
