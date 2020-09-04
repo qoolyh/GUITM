@@ -1,14 +1,20 @@
 import copy
+import json
 
 import numpy
 
 import Parser_me as Parser
 from GlobleData import Gol
+from Parser_STL import test_to_STL
 
 
 def initAll(src_json, tar_json, test_json, sim_json, pair, tgt_start, cate, src, tgt):
         SRC_G = Parser.parseJson2STG(src_json)
         TGT_G = Parser.parseJson2STG(tar_json)
+        file = open(test_json, "rb")
+        test = json.load(file)
+        STL = test_to_STL(test, SRC_G)
+        file.close()
         T = Parser.parse_test_file(test_json)
         graph_sim_matrix = Parser.parse_graph_json(sim_json)[pair]
         step_limit = 3
@@ -17,6 +23,7 @@ def initAll(src_json, tar_json, test_json, sim_json, pair, tgt_start, cate, src,
         Gol.set_value('SRC_G', src_elem_dicts_minus)
         Gol.set_value('TGT_G', TGT_G)
         Gol.set_value('T', T)
+        Gol.set_value('STL',STL)
         Gol.set_value('G_SIM', graph_sim_matrix)
         Gol.set_value('step', step_limit)
         Gol.set_value('path_cache', {})

@@ -48,6 +48,7 @@ def parseJson2STG(jsonPath): # format: activity: graph_obj
             edgIdx += 1
 
         tmpG = Graph(gidx, elemArray, edgArray)
+        tmpG.act = actName
         graphs.update({actName: tmpG})
         gidx += 1
     return graphs
@@ -184,7 +185,6 @@ def parse_test_file(json_dir):
     file = open(json_dir, "rb")
     tests = json.load(file)
     idx = 0
-    cursor = 0
     for t in tests:
         type = t['event_type']
         if t.__contains__('resource-id'):
