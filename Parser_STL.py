@@ -94,6 +94,9 @@ def test_to_STL(test, SRC):
                 t['isTxt'] = 'text' in t['action'][0]
                 t['oTxt'] = t['action'][3] if t['isTxt'] else ''
                 t['disappear'] = 'invisible' in t['action'][0]
+                if t['disappear']:
+                    o_bind = trace_back(STL,t,len(STL)-1)
+                    t['trace_back'] = o_bind
                 act = t['activity']
                 if act == STL[last].act:
                     STL[last].oracle = t
@@ -108,6 +111,42 @@ def test_to_STL(test, SRC):
                 STL[last].oracle = t
 
     return STL
+
+
+def update_bind(STL):
+    for i in range(0,len(STL)):
+        state = STL[i]
+        if len(state.edges)>1:
+            inputs = state.edges[0:len(state.edges)-1]
+            for ipt in inputs:
+                unexist, idx = not_find(ipt['action'][1],STL,i+1)
+                if not unexist:
+                    STL[i].bind_to = idx
+                    STL[idx].bind_from = i
+
+
+
+
+def trace_back(STL, t, idx):
+    find = False
+    for element in STL[idx].elements:
+        if t['isTxt'] and element.text == t['action'][3]:
+            find = True
+        elif t['isElem']:
+            idf1 = t['resource-id']+' '+t['content-desc']
+            idf2 = element.id+' '+element.desc
+            find = idf1 == idf2
+        if find:
+            reverse_oracle = deepcopy(t)
+            reverse_oracle['disappear'] = False
+            STL[idx].oracle = reverse_oracle
+            return idx
+    if not find:
+        if idx>0:
+            return trace_back(STL,t,idx-1)
+        else:
+            return -1
+
 
 
 

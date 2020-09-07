@@ -59,29 +59,80 @@ def graph_match(s_i: int, prev_t: str, match_record, TGT_used, delta):
     return max, record, matched_elem, path
 
 
-def sim_cal(s_i: int, t_i:str, prev_t:str, match_record:dict, step):
+def sim_cal(s_i: int, t_i:str, prev_t:str, match_record:list, step:int):
     """ Calculate the sequence-similarity between [s_i:s_i+step] and [t_i:t_i+step]
     :param s_i: the index of handling action in source test file
     :param t_i: the id of considered target action
     :param prev_t: the id of previous matched graph (s_i-1<->prev_t.elem)
     :param match_record: records the matched info: {s_i:te_i,...s_n:te_n}
+    :param step: the step of current sublist matching
     :return: [total_sim: the similarity,
     matched_elem: the matched element of s_i,
     next_record: the following matched sequence]
     """
+    if step > delta:
+        return 0, [], []
+    max = -111
     graph_sim = graph_sim_cal(s_i, t_i, match_record)  # similar to tf-idf, + update graph
-    edge_sim, path, jump_cost = path_sim_cal(s_i, t_i, prev_t, match_record)
-    oracle_sim = oracle_sim_cal(s_i, t_i)
+    edge_sim, path_i, jump_cost = path_sim_cal(s_i, t_i, prev_t, match_record)
+    oracle_sim, o_match = oracle_sim_cal(s_i, t_i)
     curr_sim = graph_sim + edge_sim + oracle_sim / jump_cost
     match_record_i = deepcopy(match_record)
     match_record_i.append(t_i)
-    for t_k in TGT:
+    path_k = []
+    record_k = []
+    for t_k in TGT_G:
         if reachable(t_i, t_k, delta, path_cache, distance):
-            sim_k, record_k, path_k = sim_cal(s_i+1, t_k, match_record_i)
+            sim_k, record, path = sim_cal(s_i+1, t_k, match_record_i, step+1)
+            if curr_sim+ sim_k > max or max == -111:
+                max = curr_sim+ sim_k
+                record_k = record
+                path_k = path
+    record_i = match_record_i.extend(record_k)
+    return max, path_i, record_i
 
 
-    total_sim = (graph_sim+edge_sim+oracle_sim)/jump_cost
-    return total_sim, matched_elem, record, result_path
+def oracle_sim_cal(oracle, tgt_state, oracle_record):
+    t_elems = tgt_state.elements
+    if oracle['disappear']:
+        bind = oracle['trace_back']
+        match = oracle_record[bind]
+        new_oracle = match
+        if oracle['isTxt']:
+            new_oracle.o_txt = match.text
+            if not_find(new_oracle, tgt_state):
+                return 1, new_oracle
+            else:
+                return 0, new_oracle
+        else:
+            new_oracle.o_id = match.id
+            new_oracle.o_desc = match.desc
+            new_oracle.disappear = True
+            if not_find(new_oracle, tgt_state):
+                return 1, new_oracle
+            else:
+                return 0, new_oracle
+
+    else:
+        max = -111
+        match = None
+        for element in t_elems:
+            if oracle['reverse']:
+                if element.changable:
+                    sim = o_sim(oracle, element)
+                    if sim>max:
+                        max = sim
+                        match = element
+            else:
+                sim = o_sim(oracle, element)
+                if sim > max:
+                    max = sim
+                    match = element
+    return max, match
+
+
+
+
 
 
 def graph_sim_cal(s_i, t_i, match_record, TGT_used):

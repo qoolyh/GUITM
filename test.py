@@ -79,25 +79,25 @@ def haveEdge(tgt, s):
         # return str == v
 
 def main():
-    src = 'data/a3_b31/src/a31/activitiesSummary.json'
-    t = 'data/a3_b31/a31.json'
-    # SRC = json_to_STG(src)
-    # file = open(t, "rb")
-    # test = json.load(file)
-    # STL = test_to_STL(test, SRC)
-    # for state in STL:
-    #     print(len(state.edges))
-    #     print(state.act)
-    #     if hasattr(state,'oracle'):
-    #         print('oracle.....', state.oracle)
-    #         print('istext....', state.oracle['isTxt'], state.oracle['oTxt'])
-    #         print('isElem....', state.oracle['isElem'])
-    #     print('-----------')
+    src = 'data/a2_b22/src/a22/activitiesSummary.json'
+    t = 'data/a2_b22/a22.json'
+    SRC = json_to_STG(src)
+    file = open(t, "rb")
+    test = json.load(file)
+    STL = test_to_STL(test, SRC)
+    for state in STL:
+        print(len(state.edges))
+        print(state.act)
+        if hasattr(state,'oracle'):
+            print('oracle.....', state.oracle)
+            print('istext....', state.oracle['isTxt'], state.oracle['oTxt'])
+            print('isElem....', state.oracle['isElem'])
+        print('-----------')
 
-    str1 = 'menu_profile_name'
-    str2 = 'Config_Menu_NAME'
-    dis = SimUtil.arraySim(StrUtil.tokenize("resource-id", str1), StrUtil.tokenize("resource-id", str2))
-    print(dis)
+    # str1 = 'menu_profile_name'
+    # str2 = 'Config_Menu_NAME'
+    # dis = SimUtil.arraySim(StrUtil.tokenize("resource-id", str1), StrUtil.tokenize("resource-id", str2))
+    # print(dis)
 
 
 main()
