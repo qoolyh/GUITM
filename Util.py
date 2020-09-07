@@ -1,5 +1,7 @@
 import copy
 import json
+import string
+
 import gensim
 import numpy
 from nltk.corpus import wordnet as wn
@@ -52,6 +54,21 @@ def connected(idx1, idx2, am, visited):
                 if tmp:
                     return True
     return connect
+
+
+def find_out(element, state):
+    if isinstance(element,str):
+        for elem in state.elements:
+            if elem.text == element:
+                return True
+        return False
+    else:
+        for elem in state.elements:
+            idf1 = element.id + '_' + element.bounds
+            idf2 = elem.id + '_' + elem.bounds
+            if idf1 == idf2:
+                return True
+        return False
 
 
 def get_edge(from_graph_id, to_graph_id):
