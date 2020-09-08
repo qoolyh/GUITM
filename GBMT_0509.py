@@ -5,7 +5,7 @@ import time
 
 from Evaluation import evaluate
 from Recorder import records
-from Util import init_elem_info, getPath, update_record
+from Util_1 import init_elem_info, getPath, update_record
 from simCal import *
 from GlobleData import Gol
 

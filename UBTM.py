@@ -43,13 +43,13 @@ def UBTM():
     records(res, path)
 
 
-def graph_match(s_i: int, prev_t: str, match_record, TGT_used, step, sp=None):
-    """
-    return the transition probability of two substring: s[i:i+delta-step], t[prev_t.reachable, prev_t.reachable+delta-step]
+def graph_match(s_i: int, prev_t: str, match_record: list, oracle_record: dict, step: int, sp=None):
+    """ find the best matching state t_i, s.t. 1) t_i is reachable from prev_t; 2) max(s[i,i+delta-step], t[i,i+delta-step])
+    return the transition probability of two substring: s[i:i+delta-step], t[i, prev_t.reachable+delta-step]
+    :param oracle_record:
     :param s_i:
     :param prev_t:
     :param match_record:
-    :param TGT_used:
     :param step:
     :param sp:
     :return:
@@ -65,7 +65,7 @@ def graph_match(s_i: int, prev_t: str, match_record, TGT_used, step, sp=None):
     if prev_t == -1:
         prev_t = Gol.get_value('tgt_start')
     for t_i in TGT_G:
-        sim_i, matched_i, record_i, path_i = sim_cal(s_i, t_i, prev_t, match_record, step, sp)
+        sim_i, matched_i, record_i, path_i = sim_cal(s_i, t_i, prev_t, match_record, oracle_record, step, sp)
         if max == -111 or sim_i > max:
             max = sim_i
             matched_elem = matched_i
@@ -74,24 +74,31 @@ def graph_match(s_i: int, prev_t: str, match_record, TGT_used, step, sp=None):
     return max, record, matched_elem, path
 
 
-def sim_cal(s_i: int, t_i: str, prev_t: str, match_record: list, step: int, sp=None):
+def sim_cal(s_i: int, t_i: str, prev_t: str, match_record: list, oracle_record: dict, step: int,  sp=None):
     """ Calculate the sequence-similarity between [s_i:s_i+step] and [t_i:t_i+step]
+
     :param s_i: the index of handling action in source test file
     :param t_i: the id of considered target action
     :param prev_t: the id of previous matched graph (s_i-1<->prev_t.elem)
     :param match_record: records the matched info: {s_i:te_i,...s_n:te_n}
     :param step: the step of current sublist matching
+    :param oracle_record: records the matched oracles' info: {s_i.o:t_i.o,...}
     :param sp:
     :return: [total_sim: the similarity,
     matched_elem: the matched element of s_i,
     next_record: the following matched sequence]
     """
+    oracle_record_i = deepcopy(oracle_record)
     if step > delta:
         return 0, [], []
     max = -111
     graph_sim = graph_sim_cal(s_i, t_i, match_record)  # similar to tf-idf, + update graph
     edge_sim, path_i, jump_cost = path_sim_cal(s_i, t_i, prev_t, match_record)
-    oracle_sim, o_match = oracle_sim_cal(s_i, t_i)
+    oracle_sim = 0
+    o_match = None
+    if hasattr(STL[s_i],'oracle'):
+        oracle_sim, o_match = oracle_sim_cal(STL[s_i].oracle, TGT_G[t_i], oracle_record_i)
+        oracle_record_i.update({s_i:o_match})
     curr_sim = graph_sim + edge_sim + oracle_sim / jump_cost
     match_record_i = deepcopy(match_record)
     match_record_i.append(t_i)
@@ -101,7 +108,7 @@ def sim_cal(s_i: int, t_i: str, prev_t: str, match_record: list, step: int, sp=N
         connect, paths = getPath(t_i, t_k, [])
         sp = get_satisfy_paths(paths)
         if len(sp) > 0:
-            sim_k, record, path = graph_match(s_i + 1, t_k, match_record_i, step + 1, sp)
+            sim_k, record, path = graph_match(s_i + 1, t_k, match_record_i, oracle_record_i, step + 1, sp)
             if curr_sim + sim_k > max or max == -111:
                 max = curr_sim + sim_k
                 record_k = record
