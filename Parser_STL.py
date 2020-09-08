@@ -110,7 +110,7 @@ def test_to_STL(test, SRC):
                         STL.append(state)
             else:
                 STL[last].oracle = t
-
+    update_bind(STL)
     return STL
 
 
@@ -122,13 +122,14 @@ def update_bind(STL):
             for ipt in inputs:
                 exist, idx = find_in_STL(ipt['action'][1],STL,i+1)
                 if exist:
-                    STL[i].bind_to = idx
-                    STL[idx].bind_from = i
+                    STL[i].IObind_to = idx
+                    STL[idx].IObind_from = i
 
 
 def find_in_STL(text, STL, idx):
     for i in range(idx,len(STL)):
         if find_out(text, STL[i]):
+            print(text)
             return True, i
     return False, -1
 
@@ -146,6 +147,7 @@ def trace_back(STL, t, idx):
         if find:
             reverse_oracle = deepcopy(t)
             reverse_oracle['disappear'] = False
+            reverse_oracle['activity'] = STL[idx].act
             STL[idx].oracle = reverse_oracle
             return idx
     if not find:

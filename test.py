@@ -93,6 +93,8 @@ def main():
             print('istext....', state.oracle['isTxt'], state.oracle['oTxt'])
             print('isElem....', state.oracle['isElem'])
         print('-----------')
+        if hasattr(state,'bind_to'):
+            print('bind----------', state.bind_to)
 
     # str1 = 'menu_profile_name'
     # str2 = 'Config_Menu_NAME'

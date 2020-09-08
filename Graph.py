@@ -1,6 +1,5 @@
 class Graph:
-    def __init__(self, id, elems, edges, act):
+    def __init__(self, id, elems, edges):
         self.id = id
         self.edges = edges
         self.elements = elems
-        self.act = act
