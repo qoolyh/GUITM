@@ -4,6 +4,7 @@ from copy import deepcopy
 from Edge import Edge
 from Element import Element
 from Graph import Graph
+from Util import find_out
 
 
 def json_to_STG(jsonPath): # format: activity: graph_obj
@@ -119,11 +120,17 @@ def update_bind(STL):
         if len(state.edges)>1:
             inputs = state.edges[0:len(state.edges)-1]
             for ipt in inputs:
-                unexist, idx = not_find(ipt['action'][1],STL,i+1)
-                if not unexist:
+                exist, idx = find_in_STL(ipt['action'][1],STL,i+1)
+                if exist:
                     STL[i].bind_to = idx
                     STL[idx].bind_from = i
 
+
+def find_in_STL(text, STL, idx):
+    for i in range(idx,len(STL)):
+        if find_out(text, STL[i]):
+            return True, i
+    return False, -1
 
 
 

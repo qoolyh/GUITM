@@ -4,7 +4,7 @@ from math import log
 import simCal
 from GlobleData import Gol
 from SimUtil import elem_sim
-from Util import getPath
+from Util import getPath, find_out
 
 delta = 3
 
@@ -82,6 +82,8 @@ def sim_cal(s_i: int, t_i:str, prev_t:str, match_record:list, step:int):
     path_k = []
     record_k = []
     for t_k in TGT_G:
+        path = getPath(t_i, t_k, path_cache)
+        if
         if reachable(t_i, t_k, delta, path_cache, distance):
             sim_k, record, path = sim_cal(s_i+1, t_k, match_record_i, step+1)
             if curr_sim+ sim_k > max or max == -111:
@@ -100,7 +102,7 @@ def oracle_sim_cal(oracle, tgt_state, oracle_record):
         new_oracle = match
         if oracle['isTxt']:
             new_oracle.o_txt = match.text
-            if not_find(new_oracle, tgt_state):
+            if not find_out(new_oracle.o_txt, tgt_state):
                 return 1, new_oracle
             else:
                 return 0, new_oracle
@@ -108,7 +110,7 @@ def oracle_sim_cal(oracle, tgt_state, oracle_record):
             new_oracle.o_id = match.id
             new_oracle.o_desc = match.desc
             new_oracle.disappear = True
-            if not_find(new_oracle, tgt_state):
+            if not find_out(new_oracle, tgt_state):
                 return 1, new_oracle
             else:
                 return 0, new_oracle
