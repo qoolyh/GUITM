@@ -85,6 +85,7 @@ def getPath(fromGraph, toGraph, visited):
     AM = Gol.get_value('adjencent_matrix')
     path_cache = Gol.get_value('path_cache')
     TGT_G = Gol.get_value('TGT_G')
+    delta = Gol.get_value('delta')
     key = str(fromGraph)+'_'+str(toGraph)
     if path_cache.__contains__(key):
         return True, path_cache[key]
@@ -107,6 +108,7 @@ def getPath(fromGraph, toGraph, visited):
                             newPath = [get_edge(fromGraph, i)]
                             newPath.extend(tmpPath)
                             way.append(newPath)
+        path_cache.update({key:way})
     return connect, way
 
 

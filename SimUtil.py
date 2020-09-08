@@ -42,6 +42,7 @@ def arraySim(strArray, strArray2):
     return sum(counted) / len(counted) if counted else 0
 
 
+
 def elem_sim(src_elem, tgt_elem):
     content = 0
     id_desc = 0

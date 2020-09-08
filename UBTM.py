@@ -1,12 +1,15 @@
 from copy import deepcopy
 from math import log
+from tokenize import tokenize
 
+from StrUtil import StrUtil
 import simCal
 from GlobleData import Gol
 from SimUtil import elem_sim
 from Util import getPath, find_out
 
 delta = 3
+
 
 def UBTM():
     global SRC_G
@@ -40,7 +43,19 @@ def UBTM():
     records(res, path)
 
 
-def graph_match(s_i: int, prev_t: str, match_record, TGT_used, delta):
+def graph_match(s_i: int, prev_t: str, match_record, TGT_used, step, sp=None):
+    """
+    return the transition probability of two substring: s[i:i+delta-step], t[prev_t.reachable, prev_t.reachable+delta-step]
+    :param s_i:
+    :param prev_t:
+    :param match_record:
+    :param TGT_used:
+    :param step:
+    :param sp:
+    :return:
+    """
+    if sp is None:
+        sp = []
     max = -111
     matched_elem = 'null'
     record = []
@@ -50,7 +65,7 @@ def graph_match(s_i: int, prev_t: str, match_record, TGT_used, delta):
     if prev_t == -1:
         prev_t = Gol.get_value('tgt_start')
     for t_i in TGT_G:
-        sim_i, matched_i, record_i, path_i = sim_cal(s_i, t_i, prev_t, match_record, TGT_used)
+        sim_i, matched_i, record_i, path_i = sim_cal(s_i, t_i, prev_t, match_record, step, sp)
         if max == -111 or sim_i > max:
             max = sim_i
             matched_elem = matched_i
@@ -59,13 +74,14 @@ def graph_match(s_i: int, prev_t: str, match_record, TGT_used, delta):
     return max, record, matched_elem, path
 
 
-def sim_cal(s_i: int, t_i:str, prev_t:str, match_record:list, step:int):
+def sim_cal(s_i: int, t_i: str, prev_t: str, match_record: list, step: int, sp=None):
     """ Calculate the sequence-similarity between [s_i:s_i+step] and [t_i:t_i+step]
     :param s_i: the index of handling action in source test file
     :param t_i: the id of considered target action
     :param prev_t: the id of previous matched graph (s_i-1<->prev_t.elem)
     :param match_record: records the matched info: {s_i:te_i,...s_n:te_n}
     :param step: the step of current sublist matching
+    :param sp:
     :return: [total_sim: the similarity,
     matched_elem: the matched element of s_i,
     next_record: the following matched sequence]
@@ -82,16 +98,24 @@ def sim_cal(s_i: int, t_i:str, prev_t:str, match_record:list, step:int):
     path_k = []
     record_k = []
     for t_k in TGT_G:
-        path = getPath(t_i, t_k, path_cache)
-        if
-        if reachable(t_i, t_k, delta, path_cache, distance):
-            sim_k, record, path = sim_cal(s_i+1, t_k, match_record_i, step+1)
-            if curr_sim+ sim_k > max or max == -111:
-                max = curr_sim+ sim_k
+        connect, paths = getPath(t_i, t_k, [])
+        sp = get_satisfy_paths(paths)
+        if len(sp) > 0:
+            sim_k, record, path = graph_match(s_i + 1, t_k, match_record_i, step + 1, sp)
+            if curr_sim + sim_k > max or max == -111:
+                max = curr_sim + sim_k
                 record_k = record
                 path_k = path
     record_i = match_record_i.extend(record_k)
     return max, path_i, record_i
+
+
+def get_satisfy_paths(paths):
+    sp = []
+    for p in paths:
+        if len(p) <= delta:
+            sp.append(p)
+    return sp
 
 
 def oracle_sim_cal(oracle, tgt_state, oracle_record):
@@ -122,7 +146,7 @@ def oracle_sim_cal(oracle, tgt_state, oracle_record):
             if oracle['reverse']:
                 if element.changable:
                     sim = o_sim(oracle, element)
-                    if sim>max:
+                    if sim > max:
                         max = sim
                         match = element
             else:
@@ -133,11 +157,21 @@ def oracle_sim_cal(oracle, tgt_state, oracle_record):
     return max, match
 
 
+def o_sim(oracle, element):
+    sim = 0
+    if isinstance(oracle, str):
+        o_token = StrUtil.tokenize("text", oracle)
+        e_token = StrUtil.tokenize("text", element.text)
+        sim = simCal.arraySim(o_token, e_token)
+    else:
+        o_token = StrUtil.tokenize("content_desc", oracle['content-desc']).extend(
+            StrUtil.tokenize("resource-id", oracle['resource-id']))
+        e_token = StrUtil.tokenize("content_desc", element.desc).extend(StrUtil.tokenize("resource-id", element.id))
+        sim = simCal.arraySim(o_token, e_token)
+    return sim
 
 
-
-
-def graph_sim_cal(s_i, t_i, match_record, TGT_used):
+def graph_sim_cal(s_i, t_i, match_record):
     g_sim = 0
     updated = False
     if STL[s_i].__contains__('chain'):
@@ -148,33 +182,34 @@ def graph_sim_cal(s_i, t_i, match_record, TGT_used):
                 g_sim = 1
                 updated = True
     if not updated:
-        tgt_elems = get_unused_elem(t_i, TGT_used)
+        tgt_elems = TGT_G[t_i].elements
         src_elems = STL[s_i].elements
         g_sim = simCal.graphSim_TFIDF(src_elems, tgt_elems)
     return g_sim
 
 
-def path_sim_cal(s_i, t_i, prev_t, match_record, TGT_used):
-    tmp, satisfy_paths = getPath(prev_t, t_i, path_cache)
-    src_edge = STL[s_i-1].edges
+def path_sim_cal(s_i, t_i, prev_t, match_record):
+    tmp, satisfy_paths = getPath(prev_t, t_i, [])
+    src_edge = STL[s_i - 1].edges
     sim = 0
     match_elem = 'null'
     next_record = []
     result_path = []
     tgt_step = 0
     max = -111
-    #todo: what about the starting? in the starting point, sp = []
+    # todo: what about the starting? in the starting point, sp = []
     jump_src = 0
     if s_i != 0:
-        jump_src = 0 if STL[s_i-1].act == STL[s_i] else 1
+        jump_src = 0 if STL[s_i - 1].act == STL[s_i] else 1
     jump_tgt = 0
-    for sp in satisfy_paths: # sp = [evt1, evt2...]
-        max_sp, match_info_sp = edge_comp(src_edge, sp)
-        if max_sp > max or max == -111:
-            max = max_sp
-            match_record = match_info_sp
-            result_path = sp
-            jump_tgt = len(sp)
+    for sp in satisfy_paths:  # sp = [evt1, evt2...]
+        if len(sp) <= delta:
+            max_sp, match_info_sp = edge_comp(src_edge, sp)
+            if max_sp > max or max == -111:
+                max = max_sp
+                match_record = match_info_sp
+                result_path = sp
+                jump_tgt = len(sp)
 
     record = [match_elem]
     record.extend(next_record)
@@ -197,12 +232,12 @@ def e_sim_help(s_elems, t_elems, i, j):
     if i >= len(s_elems):
         return max, match
     if j >= len(t_elems):
-        for l in range(i,len(s_elems)):
+        for l in range(i, len(s_elems)):
             match[s_elems[l]['idx']] = 'null'
         return max, match
-    for k in range(j,len(t_elems)):
+    for k in range(j, len(t_elems)):
         sim = elem_sim(s_elems[i], t_elems[k])
-        max_k, match_k = e_sim_help(s_elems, t_elems, i+1, k+1)
+        max_k, match_k = e_sim_help(s_elems, t_elems, i + 1, k + 1)
         total = sim + max_k
         if total > max:
             max = total
