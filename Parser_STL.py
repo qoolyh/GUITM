@@ -68,11 +68,6 @@ def test_to_STL(test, SRC):
             t['isInput'] = 'send_keys' in t['action']
             act = t['activity']
             state = deepcopy(SRC[act])
-            if oracle:
-                o_act = oracle['activity']
-                if o_act == act:
-                    state.oracle = oracle
-                    oracle = []
             if not STL:
                 state.edges = [t]
                 STL.append(state)
@@ -134,7 +129,6 @@ def find_in_STL(text, STL, idx):
     return False, -1
 
 
-
 def trace_back(STL, t, idx):
     find = False
     for element in STL[idx].elements:
@@ -156,6 +150,31 @@ def trace_back(STL, t, idx):
         else:
             return -1
 
+
+def oracle_to_list(oracles, STL):
+    tmp = []
+    res = []
+    for s_i in oracles:
+        if(STL[s_i]).oracle.__contains__('disappear'):
+            if not (STL[s_i].oracle)['disappear']:
+                tmp.append(oracles[s_i])
+        else:
+            tmp.append(oracles[s_i])
+
+    for e in tmp:
+        id = e.id
+        bounds = e.bounds
+        cls = e.cls
+        txt = e.text
+        desc = e.desc
+        r = {'id':id,
+             'bounds':bounds,
+             'cls':cls,
+        'txt':txt,
+        'desc':desc
+        }
+        res.append(r)
+    return res
 
 
 

@@ -102,7 +102,10 @@ def main():
     # print(dis)
 
 
-main()
+# main()
+a = [1,3]
+b = []
+print(a.extend(b))
 # for i in range(2,6):
 #     cate = 'a'+ str(i)
 #     for l in range(1,3):

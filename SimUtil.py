@@ -72,12 +72,11 @@ def elem_sim(src_elem, tgt_elem):
         else:
             src_id = src_elem['resource-id']
 
-        tgt_token = StrUtil.tokenize("content_desc", tgt_desc).extend(StrUtil.tokenize("resource-id", tgt_id))
-        src_token = StrUtil.tokenize("content_desc", tgt_desc).extend(StrUtil.tokenize("resource-id", src_id))
-
+        tgt_token = (StrUtil.tokenize("content-desc", tgt_desc))+(StrUtil.tokenize("resource-id", tgt_id))
+        src_token = (StrUtil.tokenize("content-desc", src_desc))+(StrUtil.tokenize("resource-id", src_id))
         id_desc = arraySim(tgt_token, src_token)
         if content != 1.0:
-            content = StrUtil.tokenize("text", src_txt).extend(StrUtil.tokenize("text", src_txt))
+            content = arraySim(StrUtil.tokenize("text", src_txt), StrUtil.tokenize("text", src_txt))
         v = id_desc + content
         clsMatch = False
         for key in StrUtil.CLASS_CATEGORY:
