@@ -98,7 +98,7 @@ def sim_cal(s_i: int, t_i: str, state_record: list, oracle_record: dict, step: i
     if step > delta:
         return 0, [], []
     graph_sim = graph_sim_cal(s_i, t_i, state_record)  # similar to tf-idf, + update graph
-    edge_sim, path_i, jump_cost, path_record = path_sim_cal(s_i, sp)
+    edge_sim, path_i, jump_cost, match_per_evt = path_sim_cal(s_i, sp)
     oracle_sim = 0
     o_match = []
     if hasattr(STL[s_i], 'oracle'):
@@ -208,11 +208,9 @@ def path_sim_cal(s_i: int, satisfy_paths: list):
     sim = 0
     match_elem = 'null'
     next_record = []
-    result_path = []
-    match_record = []
-    tgt_step = 0
+    decided_path = []
+    match_per_evt = []
     max = -111
-    # todo: what about the starting? in the starting point, sp = []
     jump_src = 0
     if s_i != 0:
         jump_src = 0 if STL[s_i - 1].act == STL[s_i] else 1
@@ -223,14 +221,14 @@ def path_sim_cal(s_i: int, satisfy_paths: list):
             max_sp, match_info_sp = edge_comp(src_edge, sp_tmp)
             if max_sp > max or max == -111:
                 max = max_sp
-                match_record = match_info_sp
-                result_path = sp
+                match_per_evt = match_info_sp
+                decided_path = sp
                 jump_tgt = len(sp)
 
     record = [match_elem]
     record.extend(next_record)
     jump_cost = 1 if s_i == 0 else log(abs(jump_tgt - jump_src) + 1, 2) + 1
-    return sim, result_path, jump_cost, match_record
+    return sim, decided_path, jump_cost, match_per_evt
 
 
 def path_to_elem(path):

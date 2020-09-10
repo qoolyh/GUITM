@@ -1,5 +1,5 @@
 from GlobleData import Gol
-from Util_1 import readJson
+from Util import readJson
 
 
 def res_to_key(res):
