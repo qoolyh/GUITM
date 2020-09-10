@@ -1,6 +1,6 @@
-from GBMT_0509 import GBTM
-from GlobleData import *
-import Parser_me as Parser
+# from GBMT_0509 import GBTM
+# from GlobleData import *
+# import Parser_me as Parser
 from Init import initAll
 from UBTM import UBTM
 

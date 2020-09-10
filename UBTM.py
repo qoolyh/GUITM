@@ -4,7 +4,7 @@ from copy import deepcopy
 from math import log
 from tokenize import tokenize
 
-from Parser_STL import oracle_to_list
+from Parser_STL import oracle_to_list, res_to_list
 from StrUtil import StrUtil
 import simCal
 from GlobleData import Gol
@@ -29,14 +29,19 @@ def UBTM():
     oracle_record = {}
     prev_t = '-1'
     path = []
+    per_evt = []
     for s_i in range(len(STL)):
         print(s_i, '/', len(STL))
         step = 0
-        sim, state_i, path_i, oracle_i = graph_match(s_i, prev_t, state_record, deepcopy(oracle_record), 1)
-        state_record.append(state_i[0])
+        sim, state_i, path_i, oracle_i, per_evt_i = graph_match(s_i, prev_t, deepcopy(state_record), deepcopy(oracle_record), 1)
+        print(state_i)
+        state_record.append(state_i[s_i])
+        path.extend(path_i)
         if oracle_i:
             oracle_record.update({s_i: oracle_i})
-    records(path, oracle_record)
+        per_evt.extend(per_evt_i)
+        print(state_i)
+    records(path, per_evt, oracle_record)
 
 
 def graph_match(s_i: int, prev_t: str, state_record: list, oracle_record: dict, step: int):
@@ -50,33 +55,34 @@ def graph_match(s_i: int, prev_t: str, state_record: list, oracle_record: dict, 
     :param sp:
     :return:
     """
-
+    if s_i ==0:
+        a=1
     max = -111
     path = []
     state = []
     oracle = []
+    per_evt = []
     if s_i >= len(STL) or step>delta:
-        return 0, state, path, oracle
+        return 0, state, path, oracle, per_evt
     if prev_t == '-1':
         prev_t = Gol.get_value('tgt_start')
     counter = 1
     if step ==3 :
         a = 1
     for t_i in TGT_G:
-        print(s_i,'considering....',counter,'/',len(TGT_G), step)
+        # print(s_i,'considering....',counter,'/',len(TGT_G), step)
         counter+=1
         connect, paths = getPath(prev_t, t_i, [])
         sp = get_satisfy_paths(paths)
         if len(sp) > 0:
-            sim_i, path_i, state_i, o_i = sim_cal(s_i, t_i, state_record, oracle_record, step, sp)
+            sim_i, path_i, state_i, o_i, per_evt_i = sim_cal(s_i, t_i, state_record, oracle_record, step, sp)
             if max == -111 or sim_i > max:
                 max = sim_i
                 state = state_i
                 path = path_i
                 oracle = o_i
-        else:
-            max = 0
-    return max, state, path, oracle
+                per_evt = per_evt_i
+    return max, state, path, oracle, per_evt
 
 
 def sim_cal(s_i: int, t_i: str, state_record: list, oracle_record: dict, step: int, sp: list):
@@ -96,7 +102,7 @@ def sim_cal(s_i: int, t_i: str, state_record: list, oracle_record: dict, step: i
         a = 1
     oracle_record_i = deepcopy(oracle_record)
     if step > delta:
-        return 0, [], []
+        return 0, [], [], []
     graph_sim = graph_sim_cal(s_i, t_i, state_record)  # similar to tf-idf, + update graph
     edge_sim, path_i, jump_cost, match_per_evt = path_sim_cal(s_i, sp)
     oracle_sim = 0
@@ -111,13 +117,13 @@ def sim_cal(s_i: int, t_i: str, state_record: list, oracle_record: dict, step: i
     record_k = []
     state_k = []
     for t_k in TGT_G:
-        sim_k, states, path, oracles = graph_match(s_i + 1, t_k, state_record_i, oracle_record_i, step + 1)
+        sim_k, states, path, oracles, _tmp = graph_match(s_i + 1, t_k, state_record_i, oracle_record_i, step + 1)
         if max + sim_k > max or max == -111:
             max = max + sim_k
             state_k = states
             path_k = path
-    state_i = state_record_i + state_k
-    return max, path_i, state_i, o_match
+    state_record.extend(state_k)
+    return max, path_i, state_record, o_match, match_per_evt
 
 
 def get_satisfy_paths(paths):
@@ -205,7 +211,6 @@ def path_sim_cal(s_i: int, satisfy_paths: list):
     :return:
     """
     src_edge = STL[s_i - 1].edges
-    sim = 0
     match_elem = 'null'
     next_record = []
     decided_path = []
@@ -228,7 +233,8 @@ def path_sim_cal(s_i: int, satisfy_paths: list):
     record = [match_elem]
     record.extend(next_record)
     jump_cost = 1 if s_i == 0 else log(abs(jump_tgt - jump_src) + 1, 2) + 1
-    return sim, decided_path, jump_cost, match_per_evt
+    # print(max, decided_path, jump_cost, match_per_evt)
+    return max, decided_path, jump_cost, match_per_evt
 
 
 def path_to_elem(path):
@@ -260,6 +266,7 @@ def e_sim_help(s_elems, t_elems, i, j, match):
         match_tmp.append(t_elems[k])
         max_k, match_k = e_sim_help(s_elems, t_elems, i + 1, k + 1, match_tmp)
         total = sim + max_k
+        match_tmp.extend(match_k)
         if total > max:
             max = total
             match = match_tmp
@@ -273,23 +280,28 @@ def edge_comp(s_edge, path):
     return max_sim, match_info
 
 
-def records(path, oracle):
+def records(path, per_evt, oracle):
     cate1 = Gol.get_value('cate1')
     cate2 = Gol.get_value('cate2')
     src = Gol.get_value('src')
     tgt = Gol.get_value('tgt')
     path_dir = 'result_UBTM/' + cate1 + '/' + cate2 + '/' + src + '_' + tgt + '_path.json'
-    res_dir = 'result_UBTM/' + cate1 + '/' + cate2 + '/' + src + '_' + tgt + '_oracle.json'
+    oracle_dir = 'result_UBTM/' + cate1 + '/' + cate2 + '/' + src + '_' + tgt + '_oracle.json'
+    res_dir = 'result_UBTM/' + cate1 + '/' + cate2 + '/' + src + '_' + tgt + '_res.json'
     dir = 'result_UBTM/' + cate1 + '/' + cate2 + '/'
     if not os.path.exists(dir):
         os.makedirs(dir)
     with open(path_dir, 'w') as pf:
         json.dump(path_to_json(path), pf)
         pf.close()
-    with open(res_dir, 'w') as rf:
+    with open(oracle_dir, 'w') as of:
         res = oracle_to_list(oracle, STL)
-        print(res)
-        json.dump(res, rf)
+        json.dump(res, of)
+        of.close()
+    with open(res_dir, 'w') as rf:
+        # res = res_to_list(per_evt)
+        # print(res)
+        json.dump(per_evt, rf)
         rf.close()
 
 

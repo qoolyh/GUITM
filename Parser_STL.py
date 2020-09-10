@@ -170,11 +170,28 @@ def oracle_to_list(oracles, STL):
         r = {'id':id,
              'bounds':bounds,
              'cls':cls,
-        'txt':txt,
-        'desc':desc
+             'txt':txt,
+             'desc':desc
         }
         res.append(r)
     return res
 
+
+def res_to_list(res):
+    tmp = []
+    for e in res:
+        id = e.id
+        bounds = e.bounds
+        cls = e.cls
+        txt = e.text
+        desc = e.desc
+        r = {'id':id,
+             'bounds':bounds,
+             'cls':cls,
+             'txt':txt,
+             'desc':desc
+        }
+        tmp.append(r)
+    return tmp
 
 
