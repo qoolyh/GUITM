@@ -30,17 +30,19 @@ def UBTM():
     prev_t = '-1'
     path = []
     per_evt = []
+    s = 0
     for s_i in range(len(STL)):
         print(s_i, '/', len(STL))
         step = 0
-        sim, state_i, path_i, oracle_i, per_evt_i = graph_match(s_i, prev_t, deepcopy(state_record), deepcopy(oracle_record), 1)
+        sim, state_i, path_i, oracle_i, per_evt_i = graph_match(s_i, prev_t, deepcopy(state_record), deepcopy(oracle_record), step)
         state_record.append(state_i[s_i])
         path.extend(path_i)
         if oracle_i:
             oracle_record.update({s_i: oracle_i})
         per_evt.extend(per_evt_i)
-        print(per_evt_i)
+    print(state_i[len(state_i)-1], STL[len(STL)-1].act)
     records(path, per_evt, oracle_record)
+    return s
 
 
 def graph_match(s_i: int, prev_t: str, state_record: list, oracle_record: dict, step: int):
@@ -103,6 +105,11 @@ def sim_cal(s_i: int, t_i: str, state_record: list, oracle_record: dict, step: i
     if step > delta:
         return 0, [], [], []
     graph_sim = graph_sim_cal(s_i, t_i, state_record)  # similar to tf-idf, + update graph
+    if s_i == 0:
+        edge_sim = 0
+        path_i = []
+        jump_cost = 1
+        match_per_evt = []
     edge_sim, path_i, jump_cost, match_per_evt = path_sim_cal(s_i, sp)
     oracle_sim = 0
     o_match = []
@@ -211,6 +218,9 @@ def path_sim_cal(s_i: int, satisfy_paths: list):
     :param satisfy_paths:
     :return:
     """
+    if s_i == 0:
+        return 0, [], 1, []
+
     src_edge = STL[s_i - 1].edges
     match_elem = 'null'
     next_record = []
@@ -218,6 +228,7 @@ def path_sim_cal(s_i: int, satisfy_paths: list):
     match_per_evt = []
     max = -111
     jump_src = 0
+
     if s_i != 0:
         jump_src = 0 if STL[s_i - 1].act == STL[s_i] else 1
     jump_tgt = 0
@@ -252,26 +263,24 @@ def path_to_elem(path):
 
 
 def e_sim_help(s_elems, t_elems, i, j, match):
+    match_i = deepcopy(match)
     max = 0
     if i >= len(s_elems):
-        return max, match
+        return max, match_i
     if j >= len(t_elems):
         for l in range(i, len(s_elems)):
-            match.append('null')
-        return max, match
+            match_i.append('null')
+        return max, match_i
     for k in range(j, len(t_elems)):
-        if isinstance(t_elems[k], list):
-            print(t_elems)
-        sim = elem_sim(s_elems[i], t_elems[k])
-        match_tmp = deepcopy(match)
-        match_tmp.append(t_elems[k])
-        max_k, match_k = e_sim_help(s_elems, t_elems, i + 1, k + 1, match_tmp)
-        total = sim + max_k
-        match_tmp.extend(match_k)
+        sim_k = elem_sim(s_elems[i], t_elems[k])
+        match_k = deepcopy(match)
+        match_k.append(t_elems[k])
+        max_k, match_tmp = e_sim_help(s_elems, t_elems, i + 1, k + 1, match_k)
+        total = sim_k + max_k
         if total > max:
             max = total
-            match = match_tmp
-    return max, match
+            match_i = match_tmp
+    return max, match_i
 
 
 def edge_comp(s_edge, path):

@@ -124,7 +124,6 @@ def update_bind(STL):
 def find_in_STL(text, STL, idx):
     for i in range(idx,len(STL)):
         if find_out(text, STL[i]):
-            print(text)
             return True, i
     return False, -1
 

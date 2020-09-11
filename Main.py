@@ -82,6 +82,7 @@ for i in range(len(cates)):
     srcGroup = srcGroups[i]
     tarGroup = tarGroups[i]
     haveMatched = {}
+    s = 0
     for src in srcGroup:
         srcFolder = src
         for tar in tarGroup:
@@ -103,4 +104,6 @@ for i in range(len(cates)):
 
                 initAll(src_json, tar_json, test_json, sim_json, pair, tgt_start, cate, src, tar)
                 print('running...src=',src,' tgt=',tar)
-                UBTM()
+                tmp=UBTM()
+
+    print(s)
