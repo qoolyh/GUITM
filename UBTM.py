@@ -34,13 +34,12 @@ def UBTM():
         print(s_i, '/', len(STL))
         step = 0
         sim, state_i, path_i, oracle_i, per_evt_i = graph_match(s_i, prev_t, deepcopy(state_record), deepcopy(oracle_record), 1)
-        print(state_i)
         state_record.append(state_i[s_i])
         path.extend(path_i)
         if oracle_i:
             oracle_record.update({s_i: oracle_i})
         per_evt.extend(per_evt_i)
-        print(state_i)
+        print(per_evt_i)
     records(path, per_evt, oracle_record)
 
 
@@ -55,11 +54,11 @@ def graph_match(s_i: int, prev_t: str, state_record: list, oracle_record: dict, 
     :param sp:
     :return:
     """
-    if s_i ==0:
+    if s_i ==1 and prev_t != 'com.android.packageinstaller.permission.ui.GrantPermissionsActivity0':
         a=1
     max = -111
     path = []
-    state = []
+    state = state_record
     oracle = []
     per_evt = []
     if s_i >= len(STL) or step>delta:
@@ -67,15 +66,15 @@ def graph_match(s_i: int, prev_t: str, state_record: list, oracle_record: dict, 
     if prev_t == '-1':
         prev_t = Gol.get_value('tgt_start')
     counter = 1
-    if step ==3 :
-        a = 1
     for t_i in TGT_G:
         # print(s_i,'considering....',counter,'/',len(TGT_G), step)
         counter+=1
         connect, paths = getPath(prev_t, t_i, [])
         sp = get_satisfy_paths(paths)
         if len(sp) > 0:
-            sim_i, path_i, state_i, o_i, per_evt_i = sim_cal(s_i, t_i, state_record, oracle_record, step, sp)
+            state_record_i = deepcopy(state_record)
+            state_record_i.append(t_i)
+            sim_i, path_i, state_i, o_i, per_evt_i = sim_cal(s_i, t_i, state_record_i, oracle_record, step, sp)
             if max == -111 or sim_i > max:
                 max = sim_i
                 state = state_i
@@ -111,18 +110,20 @@ def sim_cal(s_i: int, t_i: str, state_record: list, oracle_record: dict, step: i
         oracle_sim, o_match = oracle_sim_cal(STL[s_i].oracle, TGT_G[t_i], oracle_record_i)
         oracle_record_i.update({s_i: o_match})
     max = graph_sim + edge_sim + oracle_sim / jump_cost
-    state_record_i = deepcopy(state_record)
-    state_record_i.append(t_i)
-    path_k = []
-    record_k = []
-    state_k = []
-    for t_k in TGT_G:
-        sim_k, states, path, oracles, _tmp = graph_match(s_i + 1, t_k, state_record_i, oracle_record_i, step + 1)
-        if max + sim_k > max or max == -111:
-            max = max + sim_k
-            state_k = states
-            path_k = path
-    state_record.extend(state_k)
+    sim_next, states_next, path_next, oracles_next, _tmp = graph_match(s_i + 1, t_i, state_record, oracle_record_i, step + 1)
+    max+= sim_next
+    state_record = states_next
+    #
+    # path_k = []
+    # record_k = []
+    # state_k = []
+    # for t_k in TGT_G:
+    #     sim_k, states, path, oracles, _tmp = graph_match(s_i + 1, t_k, state_record, oracle_record_i, step + 1)
+    #     if max + sim_k > max or max == -111:
+    #         max = max + sim_k
+    #         state_k = states
+    #         path_k = path
+    # state_record.extend(state_k)
     return max, path_i, state_record, o_match, match_per_evt
 
 
