@@ -325,3 +325,16 @@ def path_to_json(path):
             else:
                 path_array.append(e)
     return path_array
+
+
+def get_io_list(s_i):
+    start = s_i
+    end = s_i
+    if hasattr(STL[s_i], 'IObind_to'):
+        s_o = STL[s_i].IObind_to
+        end = s_o
+        for s_k in range(s_i+1, s_o):
+            if hasattr(STL[s_k], 'IObind_to'):
+                if STL[s_k].IObind_to > s_o:
+                    end = STL[s_k].IObind
+    return start, end
