@@ -7,11 +7,22 @@ from Util import readJson
 def res_to_key(res):
     key_set = []
     for r in res:
+        changed = False
         if r == "null":
             continue
-        key = r['resource-id']+'_'+r['class']+'_'+r['content-desc']
-        key_set.append(key)
-
+        if r.__contains__('type'):
+            if r['type']=='back':
+                changed = True
+                key_set.append('back')
+        if r.__contains__('event_type'):
+            if r['event_type']=='SYS_EVENT':
+                changed = True
+                key_set.append('back')
+            if r['event_type'] == 'stepping':
+                changed = True
+        if not changed:
+            key = r['resource-id']+'_'+r['class']+'_'+r['content-desc']
+            key_set.append(key)
     return key_set
 
 
@@ -22,7 +33,6 @@ def path_to_key(path):
         for e in e_list:
             if isinstance(e, list):
                 for e_i in e:
-                    print(e_i)
                     key = e_i['resource-id'] + '_' + e_i['class'] + '_' + e_i['content-desc']
                     key_set.append(key)
             else:
@@ -43,7 +53,6 @@ def getOracleGnd(test_file):
 def oracle_precision(oracle_gnd, oracle_res):
     i=0
     correct = 0
-    print(len(oracle_gnd), len(oracle_res))
     for o_gnd in oracle_gnd:
         o_res = oracle_res[i]
         i+=1
@@ -73,8 +82,6 @@ def evaluate(res, path, oracle):
     res_k = res_to_key(res)
     path_k = path_to_key(path)
     gnd_k = res_to_key(gnd_res)
-
-
     print('res_k')
     print(res_k)
     print('path_k')
@@ -120,7 +127,7 @@ def evaluation_total(cate1, cate2, sets):
 
             o_gnd = getOracleGnd("data/" + cate1 + "_" + cate2 + "/" + tgt + ".json")
             o_res = readJson("result_UBTM/" + cate1 + '/' + cate2 + '/' + src + '_' + tgt + '_oracle.json')
-            corr = oracle_precision(o_gnd, o_res)
+            corr = 0
             total_o_c += corr
             total_o += len(o_gnd)
 
@@ -138,7 +145,9 @@ def evaluation_total(cate1, cate2, sets):
     print(precision, recall, o_acc)
 
 
-evaluation_total('a2','b21', ['a21', 'a22','a23', 'a24', 'a25'])
+# evaluation_total('a1','b12', ['a11', 'a12','a13', 'a14', 'a15'])
+# evaluation_total('a2','b22', ['a21', 'a22','a23', 'a24', 'a25'])
+evaluation_total('a3','b31', ['a31', 'a32','a33', 'a35'])
 
 
 

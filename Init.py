@@ -18,9 +18,9 @@ def initAll(src_json, tar_json, test_json, sim_json, pair, tgt_start, cate, src,
         T = Parser.parse_test_file(test_json)
         graph_sim_matrix = Parser.parse_graph_json(sim_json)[pair]
         step_limit = 3
-        src_elem_dicts_minus = initSrcDict(SRC_G, T)
+        # src_elem_dicts_minus = initSrcDict(SRC_G, T)
         Gol.init()
-        Gol.set_value('SRC_G', src_elem_dicts_minus)
+        Gol.set_value('SRC_G', SRC_G)
         Gol.set_value('TGT_G', TGT_G)
         Gol.set_value('T', T)
         Gol.set_value('STL',STL)

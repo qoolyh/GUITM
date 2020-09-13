@@ -48,8 +48,8 @@ def elem_sim(src_elem, tgt_elem):
     id_desc = 0
     tgt_id = ''
     src_id = ''
-    if src_elem["action"][0] == "KEY_BACK":
-        return 1 if tgt_elem["type"] == "back" else 0
+    if src_elem["action"][0] == "KEY_BACK" or  tgt_elem["type"] == "back":
+        return 1 if src_elem["action"][0] == "KEY_BACK" and tgt_elem["type"] == "back" else 0
     else:
         tgt_txt = tgt_elem['text']
         tgt_cls = tgt_elem['class']
@@ -78,17 +78,23 @@ def elem_sim(src_elem, tgt_elem):
         if content != 1.0:
             content = arraySim(StrUtil.tokenize("text", src_txt), StrUtil.tokenize("text", src_txt))
         v = id_desc + content
-        clsMatch = False
-        for key in StrUtil.CLASS_CATEGORY:
-            if key in src_cls.lower():
-                for cls in StrUtil.CLASS_CATEGORY[key]:
-                    if cls in tgt_cls.lower():
-                        clsMatch = True
-                        break
-                if clsMatch:
-                    break
-        if not clsMatch:
-            v -= 0.3
-        return v
 
+        if 'send_keys' in src_elem['action']:
+            if 'EditText' in tgt_elem['class']:
+                return id_desc
+            else:
+                return 0
+        else:
+            clsMatch = False
+            for key in StrUtil.CLASS_CATEGORY:
+                if key in src_cls.lower():
+                    for cls in StrUtil.CLASS_CATEGORY[key]:
+                        if cls in tgt_cls.lower():
+                            clsMatch = True
+                            break
+                    if clsMatch:
+                        break
+            if not clsMatch:
+                v -= 0.3
+            return v
 

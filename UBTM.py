@@ -56,8 +56,6 @@ def graph_match(s_i: int, prev_t: str, state_record: list, oracle_record: dict, 
     :param sp:
     :return:
     """
-    if s_i ==1 and prev_t != 'com.android.packageinstaller.permission.ui.GrantPermissionsActivity0':
-        a=1
     max = -111
     path = []
     state = state_record
@@ -105,12 +103,13 @@ def sim_cal(s_i: int, t_i: str, state_record: list, oracle_record: dict, step: i
     if step > delta:
         return 0, [], [], []
     graph_sim = graph_sim_cal(s_i, t_i, state_record)  # similar to tf-idf, + update graph
-    if s_i == 0:
-        edge_sim = 0
-        path_i = []
-        jump_cost = 1
-        match_per_evt = []
-    edge_sim, path_i, jump_cost, match_per_evt = path_sim_cal(s_i, sp)
+    # graph_sim = 1
+    edge_sim = 0
+    path_i = []
+    jump_cost = 1
+    match_per_evt = []
+    if s_i != 0:
+        edge_sim, path_i, jump_cost, match_per_evt = path_sim_cal(s_i, sp)
     oracle_sim = 0
     o_match = []
     if hasattr(STL[s_i], 'oracle'):
