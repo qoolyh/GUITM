@@ -42,3 +42,30 @@ def A(array,  n): # return A(len(array),n)
 
 
 def priority_rank_A(ipt, edge):
+    comp = []
+    if len(edge) == 0:
+        return comp
+    ranked_ipt = rank(ipt, edge[0])
+    for i in range(len(ranked_ipt)):
+        copy_ipt = copy.deepcopy(ranked_ipt)
+        copy_ipt.pop(i)
+        copy_edge = copy.deepcopy(edge)
+        copy_edge.pop(0)
+        left = priority_rank_A(copy_ipt, copy_edge)
+        if len(left) == 0:
+            comp.append([ranked_ipt[i]])
+        else:
+            for k in left:
+                new_comp_k = [ranked_ipt[i]]
+                new_comp_k.extend(k)
+                comp.append(new_comp_k)
+    return comp
+
+
+def rank(ipt, target):
+    ranked_ipt = []
+    score2ipt = {}
+    for i in ipt:
+        score = w2vSim(i, target)
+        score2ipt
+    return ranked_ipt
