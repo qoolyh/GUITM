@@ -344,17 +344,16 @@ def elem_sim(tgt_elem, src_elem, prev_tgt_elem_info, e_sim_cache):
     return v
 
 
-def single_elem_sim(tgt_elem: map, src_elem):
+def single_elem_sim( src_elem, tgt_elem):
     if not src_elem:
         return 0
-    if tgt_elem["type"] == "back":
-        if src_elem["event_type"] == "SYS_EVENT" and src_elem["action"][0] == "KEY_BACK":
-            return 1
-        else:
-            return 0
-    if src_elem["action"][0] == "KEY_BACK":
-        return 0
-
+    # if tgt_elem["type"] == "back":
+    #     if src_elem["event_type"] == "SYS_EVENT" and src_elem["action"][0] == "KEY_BACK":
+    #         return 1
+    #     else:
+    #         return 0
+    # if src_elem["action"][0] == "KEY_BACK":
+    #     return 0
     tgt_id = tgt_elem['resource-id'].split("/")[1]
     src_id = src_elem['resource-id'].split("/")[1]
 

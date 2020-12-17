@@ -1,4 +1,5 @@
 import copy
+import json
 import re
 
 from Parser_me import parseJson2STG
@@ -49,7 +50,9 @@ def priority_rank_A(ipt, edge):
     comp = []
     if len(edge) == 0:
         return comp
+    print('pri______',ipt)
     ranked_ipt = rank(ipt, edge[0])
+    print('aft___',ranked_ipt)
     for i in range(len(ranked_ipt)):
         copy_ipt = copy.deepcopy(ranked_ipt)
         copy_ipt.pop(i)
@@ -72,10 +75,11 @@ def rank(ipt, target):
     scores = []
     for i in ipt:
         score = single_elem_sim(i, target)
+        print(score, i['resource-id'])
         if score2ipt.__contains__(score):
             score2ipt[score].append(i)
         else:
-            score2ipt.update({score:i})
+            score2ipt.update({score:[i]})
             scores.append(score)
     scores.sort(reverse=True)
     for s in scores:
@@ -93,26 +97,25 @@ def rank(ipt, target):
 
 
 
-def ranktest(sim):
-    ranked_ipt = []
-    score2ipt = {}
-    scores = []
-    ipt= ['a','b','c','d','e']
-    target = ['A','B','C','D','E']
-    for i in range(len(ipt)):
-        score = sim[i][1]
-        print(score)
-        if score2ipt.__contains__(score):
-            score2ipt[score].append(ipt[i])
-        else:
-            score2ipt.update({score: [ipt[i]]})
-            scores.append(score)
-    scores.sort(reverse=True)
-    for s in scores:
-        ranked_ipt.extend(score2ipt[s])
-    return ranked_ipt
 
 
-sim = [[5,4,3,2,1],[1,2,3,4,5],[3,4,5,2,1],[4,5,3,2,1],[3,3,4,5,6]]
-res = ranktest(sim)
+ipt_p = 'data/a3_b31/a31.json'
+tgt_p = 'data/a3_b31/a32.json'
+ipt_file = open(ipt_p, "rb")
+ipts = json.load(ipt_file)
+ipt_file.close()
+tgt_file = open(tgt_p, "rb")
+tgts = json.load(tgt_file)
+tgt_file.close()
+ipt = []
+tgt = []
+for i in ipts:
+    if 'send_keys' in i['action'][0]:
+        ipt.append(i)
+for i in tgts:
+    if 'send_keys' in i['action'][0]:
+        tgt.append(i)
+res = priority_rank_A(ipt, [tgt[1]])
+for r in res:
+    print(r)
 print(res)
