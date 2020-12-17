@@ -65,7 +65,7 @@ def test_to_STL(test, SRC):
         idx+=1
         last = len(STL)-1
         if t['event_type'] == 'gui':
-            t['isInput'] = 'send_keys' in t['action']
+            t['isInput'] = ('send_keys' in t['action'][0])
             act = t['activity']
             state = deepcopy(SRC[act])
             if not STL:

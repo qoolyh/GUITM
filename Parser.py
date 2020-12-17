@@ -47,7 +47,7 @@ def parseJson2STG(jsonPath): # format: activity: graph_obj
             edgArray.append(tmpEdge)
             edgIdx += 1
 
-        tmpG = Graph(gidx, elemArray, edgArray)
+        tmpG = Graph(gidx, elemArray, edgArray, actName)
         graphs.update({actName: tmpG})
         gidx += 1
     return graphs
