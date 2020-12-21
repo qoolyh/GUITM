@@ -1,3 +1,5 @@
+import json
+
 ans = {}
 def get_input(STL: list):
     ipt = [] #edges
@@ -74,3 +76,16 @@ def ipt_match_help(ipt, edge, tgtName):
                         res.update({ipt['idx']:ipt_t})
                         break
     return res
+
+
+def getAnswer(dir):
+    res = {}
+    file = open(dir, 'rb')
+    ori = json.load(file)
+    for e in ori:
+        if 'send_keys' in e['action'][0]:
+            res.update({e['resource-id']:e['action'][1]})
+    return res
+
+
+print(getAnswer('data/a3_b31/a31.json'))
