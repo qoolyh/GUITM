@@ -50,9 +50,7 @@ def priority_rank_A(ipt, edge):
     comp = []
     if len(edge) == 0:
         return comp
-    print('pri______',ipt)
     ranked_ipt = rank(ipt, edge[0])
-    print('aft___',ranked_ipt)
     for i in range(len(ranked_ipt)):
         copy_ipt = copy.deepcopy(ranked_ipt)
         copy_ipt.pop(i)
