@@ -4,6 +4,8 @@ from nltk.corpus import wordnet as wn
 from itertools import product
 
 import SimUtil
+import simCal
+from Parser_me import parseJson2STG
 from StrUtil import StrUtil
 from ElemSim import arraySim
 from Parser_STL import json_to_STG
@@ -102,30 +104,65 @@ def main():
     # print(dis)
 
 
-# main()
-a = [1,3]
-b = []
-print(a.extend(b))
-# for i in range(2,6):
-#     cate = 'a'+ str(i)
-#     for l in range(1,3):
-#         num = 0
-#         right_o = 0
-#         right_s = 0
-#         cate2 = 'b'+str(i)+str(l)
-#         for j in range(1,6):
-#             src = cate+ str(j)
-#             if i==3 and j==4:
-#                 continue
-#             for k in range(1,6):
-#                 if i == 3 and k == 4:
-#                     continue
-#                 if k != j:
-#                     ref = cate+str(k)
-#                     right_o+=howMuch('data/'+cate+'_'+cate2+'/'+src+'_'+ref+'_T.txt','data/'+cate+'_'+cate2+'/'+ref+'.json')
-#                     # right_s += howMuch1('data/' + cate + '_' + cate2 + '/' + src + '_' + ref + '_T.txt',
-#                     #                    'data/' + cate + '_' + cate2 + '/' + ref + '.json')
-#                     num+=1
-#         print(cate+cate2, right_o, num, right_o/num)
+def testGSim_tf(sg, tg):
+    res = {}
+    tmp = {}
+    score = []
+    for si in sg:
+        for ti in tg:
+            s_graph = sg[si].elements
+            t_graph = tg[ti].elements
+            v = simCal.graphSim_TFIDF(s_graph, t_graph)
+            if res.__contains__(v):
+                res[v].append({si:ti})
+            else:
+                res.update({v:[{si:ti}]})
+                score.append(v)
+    score.sort(reverse=True)
+    for s in score:
+        tmp.update({s:res[s]})
+    return tmp
+
+
+def testGSim_w2v(sg, tg):
+    res = {}
+    tmp = {}
+    score = []
+    for si in sg:
+        for ti in tg:
+            s_graph = sg[si].elements
+            t_graph = tg[ti].elements
+            v = simCal.graphSim_W2V(s_graph, t_graph)
+            if res.__contains__(v):
+                res[v].append({si:ti})
+            else:
+                res.update({v:[{si:ti}]})
+                score.append(v)
+    score.sort(reverse=True)
+    for s in score:
+        tmp.update({s:res[s]})
+    return tmp
+
+
+
+sdir = 'data/a3_b31/tar/a31/activitiesSummary.json'
+tdir = 'data/a3_b31/tar/a35/activitiesSummary.json'
+sg = parseJson2STG(sdir)
+tg = parseJson2STG(tdir)
+for si in sg:
+    if 'CreateAccountActivity' in si:
+        for ti in tg:
+            v = simCal.gSim_baseline(sg[si].elements, tg[ti].elements)
+            print(si, ti)
+            print(v)
+        break
+
+#
+# res = testGSim_w2v(sg,tg)
+# for v in res:
+#     print('__________', v)
+#     print(res[v])
+
+
 
 

@@ -1,3 +1,4 @@
+import copy
 import json
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -388,4 +389,81 @@ def single_elem_sim( src_elem, tgt_elem):
 
     if not clsMatch:
         v -= 0.3
+    return v
+
+
+def gSim_baseline(SRC, TGT):
+    res = 0
+    VIS.clear()
+    v = graphSim_baseline(SRC, TGT)
+    res = v/len(SRC)
+    return res
+
+
+VIS = {}
+
+
+def graphSim_baseline(SRC, TGT):
+    max = 0
+    for si in range(len(SRC)):
+        for ti in range(len(TGT)):
+            key = str(si)+'_'+str(ti)
+            if VIS.__contains__(key):
+                return VIS[key]
+            else:
+                tmp_TGT = copy.deepcopy(TGT)
+                tmp_SRC = copy.deepcopy(SRC)
+                tmp_res = 0
+                if SRC[si].text == '':
+                    tmp_SRC.pop(si)
+                    tmp_res = graphSim_baseline(tmp_SRC, tmp_TGT)
+                    if max < tmp_res:
+                        max = tmp_res
+                else:
+                    eSim = element_sim(SRC[si], TGT[ti])
+                    tmp_SRC.pop(si)
+                    tmp_TGT.pop(ti)
+                    tmp_res = eSim+graphSim_baseline(tmp_SRC, tmp_TGT)
+                    if max < tmp_res:
+                        max = tmp_res
+                VIS.update({key:tmp_res})
+    return max
+
+
+def element_sim(se, te):
+    sid = se.id
+    if '/' in se.id:
+        sid = sid.split('/')[1]
+    sdesc = se.desc
+    scls = se.cls
+    stxt = se.text
+
+    tid = te.id
+    if '/' in te.id:
+        tid = te.id.split('/')[1]
+    tdesc = te.desc
+    tcls = te.cls
+    ttxt = te.text
+
+    # sid = sid+'_'+sdesc+'_'+stxt
+    # tid = tid+'_'+tdesc+'_'+ttxt
+    contentScore = 0
+
+    if stxt.isnumeric() and ttxt.isnumeric():
+        contentScore = 1.0
+    else:
+        contentScore = arraySim(StrUtil.tokenize("text", stxt), StrUtil.tokenize("text", ttxt))
+
+    clsMatch = False
+    for key in StrUtil.CLASS_CATEGORY:
+        if key in scls.lower():
+            for cls in StrUtil.CLASS_CATEGORY[key]:
+                if cls in tcls.lower():
+                    clsMatch = True
+                    break
+            if clsMatch:
+                break
+    v = contentScore
+    # if not clsMatch:
+    #     v -= 0.3
     return v
