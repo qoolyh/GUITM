@@ -16,11 +16,15 @@ def exhaustive_search(ipts: list, edges: list):
         sorted_ipt = priority_rank_A(ipt, tgt)
         for comp in sorted_ipt:
             if check(comp, tgt):
-                res.update({map[i]:comp})
-                flag = True
-
-
+                if not res.__contains__(map[i]):
+                    res.update({map[i]:comp})
+                break
     return res
+
+
+# def sort_by_graph_sim(src, tgt):
+#     for s in src:
+#         for t in tgt:
 
 
 def getInputEdges(STG):
@@ -128,6 +132,14 @@ def rank(ipt, target):
 #     print(id_format(graph))
 #     break
 
+def test_gsim(src, tgt):
+    s_g = parseJson2STG('data/a3_b31/tar/a31/activitiesSummary.json')
+    t_g = parseJson2STG('data/a3_b31/tar/a32/activitiesSummary.json')
+    for sg in s_g:
+        for tg in t_g:
+            s_graph = s_g[sg]
+            t_graph = t_g[tg]
+            U
 
 
 
