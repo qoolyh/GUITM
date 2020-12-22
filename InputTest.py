@@ -8,17 +8,53 @@ from simCal import single_elem_sim
 ANS = {}
 
 def exhaustive_search(ipts: list, edges: list):
-    res = []
+    res = {}
+    map = sort_by_Graph_sim(ipts, edges)
+    for i in ipts:
+        ipt = ipts[i]
+        tgt = edges[map[i]]
+        sorted_ipt = priority_rank_A(ipt, tgt)
+        for comp in sorted_ipt:
+            if check(comp, tgt):
+                res.update({map[i]:comp})
+                flag = True
+
 
     return res
 
 
-def check(ipt_comb, ipts):
+def getInputEdges(STG):
+    iptEdge = {}
+    for s in STG:
+        state = STG[s]
+        key = s
+        path = state.edges
+        egs = []
+        for edges in path:
+            tmp = []
+            elements = edges.target
+            if len(elements)>1:
+                for e in elements:
+                    if isinstance(e,list):
+                        tmp_e = []
+                        for k in e:
+                            if k['type'] == 'input':
+                                tmp_e.append(k)
+                        if len(tmp_e)>1:
+                            egs.append(tmp_e)
+                    else:
+                        if e['type'] == 'input':
+                            tmp.append(e)
+            if len(tmp)>0:
+                egs.append(tmp)
+        if len(egs)>0:
+            iptEdge.update({key:egs})
+    return iptEdge
+
+
+def check(ipt_comb, ans):
     correct = True
     key = ''
-    for i in ipts:
-        key+=ipts['activity']
-    ans = ANS[key]
     for i in range(len(ipt_comb)):
         if ipt_comb[i]['text'] == ans[i]:
             continue
@@ -99,21 +135,30 @@ def rank(ipt, target):
 
 ipt_p = 'data/a3_b31/a31.json'
 tgt_p = 'data/a3_b31/a32.json'
+# ans = getAnswer(tgt_p)
 ipt_file = open(ipt_p, "rb")
 ipts = json.load(ipt_file)
 ipt_file.close()
 tgt_file = open(tgt_p, "rb")
 tgts = json.load(tgt_file)
 tgt_file.close()
+STG = parseJson2STG('data/a3_b31/tar/a32/activitiesSummary.json')
+
 ipt = []
 tgt = []
-for i in ipts:
-    if 'send_keys' in i['action'][0]:
-        ipt.append(i)
-for i in tgts:
-    if 'send_keys' in i['action'][0]:
-        tgt.append(i)
-res = priority_rank_A(ipt, [tgt[1]])
-for r in res:
-    print(r)
-print(res)
+egs = getInputEdges(STG)
+for eg in egs:
+    print(egs[eg])
+
+
+# for i in ipts:
+#     if 'send_keys' in i['action'][0]:
+#         ipt.append(i)
+# for i in tgts:
+#     if 'send_keys' in i['action'][0]:
+#         tgt.append(i)
+#
+# res = priority_rank_A(ipt, [tgt[1]])
+# for r in res:
+#     print(r)
+# print(res)
