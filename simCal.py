@@ -345,7 +345,7 @@ def elem_sim(tgt_elem, src_elem, prev_tgt_elem_info, e_sim_cache):
     return v
 
 
-def single_elem_sim( src_elem, tgt_elem):
+def single_elem_sim(src_elem, tgt_elem):
     if not src_elem:
         return 0
     # if tgt_elem["type"] == "back":
@@ -380,8 +380,8 @@ def single_elem_sim( src_elem, tgt_elem):
     else:
         contentScore = arraySim(StrUtil.tokenize("text", tgt_txt), StrUtil.tokenize("text", src_txt))
 
-    src_desc = src_id+'_'+src_desc
-    tgt_desc = tgt_id+'_'+tgt_desc
+    src_desc = src_id + '_' + src_desc
+    tgt_desc = tgt_id + '_' + tgt_desc
     # idScore = arraySim(StrUtil.tokenize("resource-id", tgt_id), StrUtil.tokenize("resource-id", src_id))
     descScore = arraySim(StrUtil.tokenize("content-desc", tgt_desc), StrUtil.tokenize("content-desc", src_desc))
     v = contentScore + descScore  # + clsScore
@@ -396,7 +396,12 @@ def gSim_baseline(SRC, TGT):
     res = 0
     VIS.clear()
     v = graphSim_baseline(SRC, TGT)
-    res = v/len(SRC)
+    num = 0
+    for e in SRC:
+        if e.text != '' or e.desc != '':
+            num+=1
+    if num != 0:
+        res = v/num
     return res
 
 
@@ -405,28 +410,36 @@ VIS = {}
 
 def graphSim_baseline(SRC, TGT):
     max = 0
-    for si in range(len(SRC)):
-        for ti in range(len(TGT)):
-            key = str(si)+'_'+str(ti)
-            if VIS.__contains__(key):
-                return VIS[key]
-            else:
+    si = 0
+    if len(SRC)<1:
+        return 0
+    for ti in range(len(TGT)):
+        key = SRC[si].idx + '_' + SRC[si].bounds + '_' + TGT[ti].idx + '_' + TGT[ti].bounds
+        if VIS.__contains__(key):
+            return VIS[key]
+        else:
+            tmp_res = 0
+            if SRC[si].text == '' and SRC[si].desc == '':
                 tmp_TGT = copy.deepcopy(TGT)
                 tmp_SRC = copy.deepcopy(SRC)
-                tmp_res = 0
-                if SRC[si].text == '':
-                    tmp_SRC.pop(si)
-                    tmp_res = graphSim_baseline(tmp_SRC, tmp_TGT)
-                    if max < tmp_res:
-                        max = tmp_res
-                else:
-                    eSim = element_sim(SRC[si], TGT[ti])
-                    tmp_SRC.pop(si)
-                    tmp_TGT.pop(ti)
-                    tmp_res = eSim+graphSim_baseline(tmp_SRC, tmp_TGT)
-                    if max < tmp_res:
-                        max = tmp_res
-                VIS.update({key:tmp_res})
+                tmp_SRC.pop(si)
+                tmp_res = graphSim_baseline(tmp_SRC, tmp_TGT)
+                if max < tmp_res:
+                    max = tmp_res
+                VIS.update({key: tmp_res})
+            else:
+                eSim = element_sim(SRC[si], TGT[ti])
+                tmp_TGT = copy.deepcopy(TGT)
+                tmp_SRC = copy.deepcopy(SRC)
+                tmp_SRC.pop(si)
+                tmp_TGT.pop(ti)
+                tmp_res = eSim + graphSim_baseline(tmp_SRC, tmp_TGT)
+                # print(SRC[si].text, '____', TGT[ti].text, tmp_res)
+                if max < tmp_res:
+                    max = tmp_res
+                VIS.update({key: tmp_res})
+            # if '[0,0][1080,1794]' in SRC[si].bounds:
+            #     print('heres the key...',key, tmp_res)
     return max
 
 
@@ -447,6 +460,8 @@ def element_sim(se, te):
 
     # sid = sid+'_'+sdesc+'_'+stxt
     # tid = tid+'_'+tdesc+'_'+ttxt
+    stxt = sdesc+'_'+stxt
+    ttxt = tdesc+'_'+ttxt
     contentScore = 0
 
     if stxt.isnumeric() and ttxt.isnumeric():
