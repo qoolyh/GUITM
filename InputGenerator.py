@@ -1,7 +1,13 @@
 import json
 
+from Parser_STL import test_to_STL
+from Parser_me import parseJson2STG
+
 ans = {}
+
+
 def get_input(STL: list):
+    res = {}
     ipt = [] #edges
     for i in range(len(STL)):
         state = STL[i]
@@ -22,7 +28,9 @@ def get_input(STL: list):
         if prev != -1:
             if ipt[i]['idx']-1 == ipt[prev]['idx']:
                 ipt[prev]['next'].append(ipt[i])
-    return ipt
+    for i in ipt:
+        res.update({i['ipts'][0]['activity']:i})
+    return res
 
 
 # def input_matcher(ipt: list, STG: list):
@@ -78,14 +86,28 @@ def ipt_match_help(ipt, edge, tgtName):
     return res
 
 
-# def getAnswer(dir):
-#     res = {}
-#     file = open(dir, 'rb')
-#     ori = json.load(file)
-#     for e in ori:
-#         if 'send_keys' in e['action'][0]:
-#             res.update({e['resource-id']:e['action'][1]})
-#     return res
+def getAnswer(ori):
+    res = {}
+    for e in ori:
+        if e.__contains__('action'):
+            if 'send_keys' in e['action'][0]:
+                act = e['activity']
+                if res.__contains__(act):
+                    res[act].append(e['action'][1])
+                else:
+                    oneact = {act:[e['action'][1]]}
+                    res.update(oneact)
+    return res
 #
 #
 # print(getAnswer('data/a3_b31/a31.json'))
+# test_json = 'data/a3_b31/a31.json'
+# file = open(test_json, "rb")
+# test = json.load(file)
+# sdir = 'data/a3_b31/tar/a31/activitiesSummary.json'
+# sg = parseJson2STG(sdir)
+# STL = test_to_STL(test, sg)
+# res = get_input(STL)
+# for k in res:
+#     print(k)
+#     print(res[k])

@@ -2,29 +2,79 @@ import copy
 import json
 import re
 
+import simCal
+from InputGenerator import get_input, getAnswer
+from Parser_STL import test_to_STL
 from Parser_me import parseJson2STG
 from simCal import single_elem_sim
 
 ANS = {}
 
-def exhaustive_search(ipts: list, edges: list):
+# def exhaustive_search(ipts: list, edges: list):
+#     res = {}
+#     map = sort_by_Graph_sim(ipts, edges)
+#     for i in ipts:
+#         ipt = ipts[i]
+#         tgt = edges[map[i]]
+#         sorted_ipt = priority_rank_A(ipt, tgt)
+#         for comp in sorted_ipt:
+#             if check(comp, tgt):
+#                 if not res.__contains__(map[i]):
+#                     res.update({map[i]:comp})
+#                 break
+#     return res
+
+
+def exhaustive_search(SRC_ipts, TGT_ipts, ans, SRC, TGT):
     res = {}
-    map = sort_by_Graph_sim(ipts, edges)
-    for i in ipts:
-        ipt = ipts[i]
-        tgt = edges[map[i]]
-        sorted_ipt = priority_rank_A(ipt, tgt)
-        for comp in sorted_ipt:
-            if check(comp, tgt):
-                if not res.__contains__(map[i]):
-                    res.update({map[i]:comp})
-                break
+    map = sort_by_graph_sim(SRC_ipts, TGT_ipts, SRC, TGT, ans)
+    for i in SRC_ipts:
+        look_forward = 0
+        ipt = SRC_ipts[i]
+        tgts = map[i]
+        for tgt in tgts:
+            if tgt not in ans:
+                continue
+            sorted_ipt = priority_rank_A(ipt['ipts'], TGT_ipts[tgt])
+            for comp in sorted_ipt:
+                if check(comp, ans[tgt]):
+                    if tgt not in res:
+                        res.update({tgt:comp})
+                        look_forward+=1
+                    if look_forward > 3:
+                        break # once you break, no more tgts will be matched
     return res
 
 
-# def sort_by_graph_sim(src, tgt):
-#     for s in src:
-#         for t in tgt:
+def sort_by_graph_sim(SRC_ipts, TGT_ipts, SRC, TGT, ans):
+    # return gsim({si: [tj, tj+1]}, {si+1: [tk,tk+1]}...)
+    gsim_Ranked = {}
+    counter = 1
+    for s in SRC_ipts:
+        si = {}
+        score = []
+        tmp = []
+        tcounter = 1
+        for t in TGT_ipts:
+            if t not in ans:
+                tcounter+=1
+                continue
+
+            src_i = SRC[s]
+            tgt_i = TGT[t]
+            gsim_i = simCal.gSim_baseline(src_i.elements, tgt_i.elements)
+            if si.__contains__(gsim_i):
+                si[gsim_i].append(t)
+            else:
+                si.update({gsim_i:[t]})
+                score.append(gsim_i)
+            tcounter+=1
+        score.sort(reverse=True)
+        for k in score:
+            tmp.extend(si[k])
+        gsim_Ranked.update({s:tmp})
+        counter += 1
+    return gsim_Ranked
 
 
 def getInputEdges(STG):
@@ -56,15 +106,43 @@ def getInputEdges(STG):
     return iptEdge
 
 
+def get_input_from_STG(STG):
+    ipts = {}
+    iptElem = []
+    for s in STG:
+        state = STG[s]
+        key = s
+        path = state.edges
+        egs = []
+        for edges in path:
+            elements = edges.target
+            if len(elements) > 1:
+                for e in elements:
+                    if isinstance(e, list):
+                        tmp_e = []
+                        for k in e:
+                            if k['type'] == 'input':
+                                if k not in iptElem:
+                                    iptElem.append(k)
+                    else:
+                        if e['type'] == 'input':
+                            if e not in iptElem:
+                                iptElem.append(e)
+        if len(iptElem) > 0:
+            ipts.update({key: iptElem})
+    return ipts
+
+
 def check(ipt_comb, ans):
     correct = True
     key = ''
     for i in range(len(ipt_comb)):
-        if ipt_comb[i]['text'] == ans[i]:
-            continue
-        else:
-            correct = False
-            break
+        if ans.__contains__(i):
+            if ipt_comb[i]['text'] == ans[i]:
+                continue
+            else:
+                correct = False
+                break
     return correct
 
 
@@ -113,7 +191,6 @@ def rank(ipt, target):
     scores = []
     for i in ipt:
         score = single_elem_sim(i, target)
-        print(score, i['resource-id'])
         if score2ipt.__contains__(score):
             score2ipt[score].append(i)
         else:
@@ -139,28 +216,58 @@ def test_gsim(src, tgt):
         for tg in t_g:
             s_graph = s_g[sg]
             t_graph = t_g[tg]
-            U
+
+def main():
+    sdir = 'data/a3_b31/tar/a31/activitiesSummary.json'
+    tdir = 'data/a3_b31/tar/a35/activitiesSummary.json'
+    test_json = 'data/a3_b31/a31.json'
+    ansjson = 'data/a3_b31/a35.json'
+    sg = parseJson2STG(sdir)
+    tg = parseJson2STG(tdir)
+    file = open(test_json, "rb")
+    test = json.load(file)
+
+    file2 = open(ansjson, "rb")
+    ansf = json.load(file2)
+    STL = test_to_STL(test, sg)
+    tipt = get_input_from_STG(tg)
+    sipt = get_input(STL)
+    ans = getAnswer(ansf)
+    print(ans)
+    res = exhaustive_search(sipt,tipt, ans, sg, tg)
+    for r in res:
+        print(r)
+        print(res[r])
+
+
+main()
+
+# for si in sg:
+#     if 'CreateAccountActivity' in si:
+#         for ti in tg:
+#             v = simCal.gSim_baseline(sg[si].elements, tg[ti].elements)
+#             print(si, ti)
+#             print(v)
+#         break
 
 
 
-
-
-ipt_p = 'data/a3_b31/a31.json'
-tgt_p = 'data/a3_b31/a32.json'
-# ans = getAnswer(tgt_p)
-ipt_file = open(ipt_p, "rb")
-ipts = json.load(ipt_file)
-ipt_file.close()
-tgt_file = open(tgt_p, "rb")
-tgts = json.load(tgt_file)
-tgt_file.close()
-STG = parseJson2STG('data/a3_b31/tar/a32/activitiesSummary.json')
-
-ipt = []
-tgt = []
-egs = getInputEdges(STG)
-for eg in egs:
-    print(egs[eg])
+# ipt_p = 'data/a3_b31/a31.json'
+# tgt_p = 'data/a3_b31/a32.json'
+# # ans = getAnswer(tgt_p)
+# ipt_file = open(ipt_p, "rb")
+# ipts = json.load(ipt_file)
+# ipt_file.close()
+# tgt_file = open(tgt_p, "rb")
+# tgts = json.load(tgt_file)
+# tgt_file.close()
+# STG = parseJson2STG('data/a3_b31/tar/a32/activitiesSummary.json')
+#
+# ipt = []
+# tgt = []
+# egs = getInputEdges(STG)
+# for eg in egs:
+#     print(egs[eg])
 
 
 # for i in ipts:
