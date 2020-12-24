@@ -33,9 +33,28 @@ def exhaustive_search(SRC_ipts, TGT_ipts, ans, SRC, TGT):
         ipt = SRC_ipts[i]
         tgts = map[i]
         for tgt in tgts:
+            use_next = 0
             if tgt not in ans:
                 continue
+            flag = len(ipt) >= TGT_ipts[tgt]
+            if len(ipt['ipts'])<len(TGT_ipts[tgt]):
+                print('wow!!!!')
+                if len(ipt['next']) > 0:
+                    nexts = ipt['next']
+                    left = len(TGT_ipts[tgt]) - len(ipt)
+                    for next in nexts:
+                        if left > len(next):
+                            left -= len(next)
+                            use_next += 1
+                        else:
+                            flag = True
+                            break
+                    if left > 0:
+                        flag = False
+                        return res
+
             sorted_ipt = priority_rank_A(ipt['ipts'], TGT_ipts[tgt])
+            print('comparing to ', tgt, len(sorted_ipt))
             for comp in sorted_ipt:
                 if check(comp, ans[tgt]):
                     if tgt not in res:
@@ -59,7 +78,6 @@ def sort_by_graph_sim(SRC_ipts, TGT_ipts, SRC, TGT, ans):
             if t not in ans:
                 tcounter+=1
                 continue
-
             src_i = SRC[s]
             tgt_i = TGT[t]
             gsim_i = simCal.gSim_baseline(src_i.elements, tgt_i.elements)
@@ -108,8 +126,8 @@ def getInputEdges(STG):
 
 def get_input_from_STG(STG):
     ipts = {}
-    iptElem = []
     for s in STG:
+        iptElem = []
         state = STG[s]
         key = s
         path = state.edges
@@ -136,13 +154,19 @@ def get_input_from_STG(STG):
 def check(ipt_comb, ans):
     correct = True
     key = ''
+    ipt_words = []
     for i in range(len(ipt_comb)):
-        if ans.__contains__(i):
-            if ipt_comb[i]['text'] == ans[i]:
+        if '.net' in ipt_comb[i]['action'][1]:
+            if '.net' in ans[i]:
                 continue
             else:
                 correct = False
                 break
+        if ipt_comb[i]['action'][1] == ans[i] or ans[i]=='666':
+            continue
+        else:
+            correct = False
+            break
     return correct
 
 
@@ -164,11 +188,11 @@ def A(array,  n): # return A(len(array),n)
     return comp
 
 
-def priority_rank_A(ipt, edge):
+def priority_rank_A(ipts, edge):
     comp = []
     if len(edge) == 0:
         return comp
-    ranked_ipt = rank(ipt, edge[0])
+    ranked_ipt = rank(ipts, edge[0])
     for i in range(len(ranked_ipt)):
         copy_ipt = copy.deepcopy(ranked_ipt)
         copy_ipt.pop(i)
@@ -185,11 +209,11 @@ def priority_rank_A(ipt, edge):
     return comp
 
 
-def rank(ipt, target):
+def rank(ipts, target):
     ranked_ipt = []
     score2ipt = {}
     scores = []
-    for i in ipt:
+    for i in ipts:
         score = single_elem_sim(i, target)
         if score2ipt.__contains__(score):
             score2ipt[score].append(i)
@@ -218,10 +242,10 @@ def test_gsim(src, tgt):
             t_graph = t_g[tg]
 
 def main():
-    sdir = 'data/a3_b31/tar/a31/activitiesSummary.json'
-    tdir = 'data/a3_b31/tar/a35/activitiesSummary.json'
-    test_json = 'data/a3_b31/a31.json'
-    ansjson = 'data/a3_b31/a35.json'
+    sdir = 'data/a3_b31/tar/a35/activitiesSummary.json'
+    tdir = 'data/a3_b31/tar/a31/activitiesSummary.json'
+    test_json = 'data/a3_b31/a35.json'
+    ansjson = 'data/a3_b31/a31.json'
     sg = parseJson2STG(sdir)
     tg = parseJson2STG(tdir)
     file = open(test_json, "rb")

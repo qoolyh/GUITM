@@ -28,8 +28,34 @@ def get_input(STL: list):
         if prev != -1:
             if ipt[i]['idx']-1 == ipt[prev]['idx']:
                 ipt[prev]['next'].append(ipt[i])
-    for i in ipt:
-        res.update({i['ipts'][0]['activity']:i})
+    record = []
+    for i in range(len(ipt)):
+        next = i+1
+        curr = i
+        if i == 0:
+            record.append(i)
+        if next < len(ipt):
+            if ipt[next]['idx'] != ipt[curr]['idx']+1 and i!=0:
+                record.append(i)
+            while(ipt[next]['idx'] == ipt[curr]['idx']+1):
+                ipt[i]['ipts'].extend(ipt[next]['ipts'])
+                curr +=1
+                next +=1
+                if next >= len(ipt):
+                    break
+            i = curr
+    for i in record:
+        res.update({ipt[i]['ipts'][0]['activity']:ipt[i]})
+    #
+    #
+    #     if next < len(ipt):
+    #         if ipt[next]['idx'] == ipt[i]['idx']+1:
+    #             ipt[i]['ipts'].extend(ipt[next]['ipts'])
+    # for i in ipt:
+    #     curr = i
+    #     if len(ipt[i]['next'])>0:
+    #         next =
+    #     res.update({i['ipts'][0]['activity']:i})
     return res
 
 
@@ -50,8 +76,8 @@ def similar(ipt: object, tgt: object):
     return same
 
 
-def ipt_match_help(ipt, edge, tgtName):
-    res = {}
+def ipt_match_help(ipt, edge):
+    ipts = ipt
     use_next = 0
     flag = len(ipt)>=len(edge)-1
     if len(ipt)<len(edge)-1:
@@ -67,23 +93,14 @@ def ipt_match_help(ipt, edge, tgtName):
                     break
             if left>0:
                 flag = False
-                return res
+                return []
     if flag:
-        ipts = ipt
         curr = ipt
         for count in range(use_next):
             next = curr['next']
             ipts.extend(next)
             curr = next
-        for i in ipts:
-            text = i['action'][1]
-            for ipt_t in edge:
-                if ipt_t['type'] == 'input':
-                    key = ipt_t['resource-id']
-                    if ans[tgtName][key] == ipt_t['text']:
-                        res.update({ipt['idx']:ipt_t})
-                        break
-    return res
+    return ipts
 
 
 def getAnswer(ori):
@@ -101,13 +118,14 @@ def getAnswer(ori):
 #
 #
 # print(getAnswer('data/a3_b31/a31.json'))
-# test_json = 'data/a3_b31/a31.json'
-# file = open(test_json, "rb")
-# test = json.load(file)
-# sdir = 'data/a3_b31/tar/a31/activitiesSummary.json'
-# sg = parseJson2STG(sdir)
-# STL = test_to_STL(test, sg)
-# res = get_input(STL)
-# for k in res:
-#     print(k)
-#     print(res[k])
+test_json = 'data/a3_b31/a35.json'
+file = open(test_json, "rb")
+test = json.load(file)
+sdir = 'data/a3_b31/tar/a35/activitiesSummary.json'
+sg = parseJson2STG(sdir)
+STL = test_to_STL(test, sg)
+res = get_input(STL)
+for k in res:
+    print(k)
+    for n in res[k]['ipts']:
+        print(n)
