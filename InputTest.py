@@ -37,23 +37,6 @@ def exhaustive_search(SRC_ipts, TGT_ipts, ans, SRC, TGT):
             use_next = 0
             if tgt not in ans:
                 continue
-            flag = len(ipt) >= TGT_ipts[tgt]
-            if len(ipt['ipts'])<len(TGT_ipts[tgt]):
-                print('wow!!!!')
-                if len(ipt['next']) > 0:
-                    nexts = ipt['next']
-                    left = len(TGT_ipts[tgt]) - len(ipt)
-                    for next in nexts:
-                        if left > len(next):
-                            left -= len(next)
-                            use_next += 1
-                        else:
-                            flag = True
-                            break
-                    if left > 0:
-                        flag = False
-                        return res
-
             sorted_ipt = priority_rank_A(ipt['ipts'], TGT_ipts[tgt])
             print('comparing to ', tgt, len(sorted_ipt))
             for comp in sorted_ipt:
@@ -163,7 +146,7 @@ def check(ipt_comb, ans):
             else:
                 correct = False
                 break
-        if ipt_comb[i]['action'][1] == ans[i] or ans[i]=='666':
+        if ipt_comb[i]['action'][1] == ans[i] or ans[i] == '666':
             continue
         else:
             correct = False
@@ -245,9 +228,9 @@ def test_gsim(src, tgt):
 
 def main():
     sdir = 'data/a3_b31/tar/a35/activitiesSummary.json'
-    tdir = 'data/a3_b31/tar/a31/activitiesSummary.json'
+    tdir = 'data/a3_b31/tar/a33/activitiesSummary.json'
     test_json = 'data/a3_b31/a35.json'
-    ansjson = 'data/a3_b31/a31.json'
+    ansjson = 'data/a3_b31/a33.json'
     sg = parseJson2STG(sdir)
     tg = parseJson2STG(tdir)
     file = open(test_json, "rb")
