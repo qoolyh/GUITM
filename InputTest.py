@@ -227,10 +227,15 @@ def test_gsim(src, tgt):
 
 
 def main():
-    sdir = 'data/a3_b31/tar/a35/activitiesSummary.json'
-    tdir = 'data/a3_b31/tar/a33/activitiesSummary.json'
-    test_json = 'data/a3_b31/a35.json'
-    ansjson = 'data/a3_b31/a33.json'
+    cate = '5'
+    folder = 'a'+cate+'_b'+cate+'1'
+    src = 'a'+cate+'1'
+    ref = 'a'+cate+'2'
+
+    sdir = 'data/'+folder+'/tar/'+src+'/activitiesSummary.json'
+    tdir = 'data/'+folder+'/tar/'+ref+'/activitiesSummary.json'
+    test_json = 'data/'+folder+'/'+src+'.json'
+    ansjson = 'data/'+folder+'/'+ref+'.json'
     sg = parseJson2STG(sdir)
     tg = parseJson2STG(tdir)
     file = open(test_json, "rb")
