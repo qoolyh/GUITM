@@ -2,6 +2,7 @@ import copy
 import json
 import re
 
+from StrUtil import StrUtil
 import simCal
 from InputGenerator import get_input, getAnswer
 from Parser_STL import test_to_STL
@@ -241,6 +242,7 @@ def test_gsim(src, tgt):
             s_graph = s_g[sg]
             t_graph = t_g[tg]
 
+
 def main():
     sdir = 'data/a3_b31/tar/a35/activitiesSummary.json'
     tdir = 'data/a3_b31/tar/a31/activitiesSummary.json'
@@ -254,14 +256,45 @@ def main():
     file2 = open(ansjson, "rb")
     ansf = json.load(file2)
     STL = test_to_STL(test, sg)
-    tipt = get_input_from_STG(tg)
-    sipt = get_input(STL)
-    ans = getAnswer(ansf)
-    print(ans)
-    res = exhaustive_search(sipt,tipt, ans, sg, tg)
-    for r in res:
-        print(r)
-        print(res[r])
+    oracle_binding(STL)
+    # tipt = get_input_from_STG(tg)
+    # sipt = get_input(STL)
+    # ans = getAnswer(ansf)
+    # print(ans)
+    # res = exhaustive_search(sipt,tipt, ans, sg, tg)
+    # for r in res:
+    #     print(r)
+    #     print(res[r])
+
+
+def oracle_binding(STL):
+    oracles = []
+    for s in STL:
+        if hasattr(s,'oracle'):
+            oracles.append(s.oracle)
+    STL_ipts = get_input(STL)
+    for o in oracles:
+        o_text = o['text']
+        o_desc = o['content-desc']
+        o_content = o_text+' '+o_desc
+        for act in STL_ipts:
+            ipts = STL_ipts[act]['ipts']
+            for i in ipts:
+                text = i['text']+' '+i['action'][1]
+                if similar_substr(text, o_content):
+                    print(text, o_content)
+
+
+def similar_substr(text, o_content):
+    tk1 = StrUtil.tokenize('text', text)
+    tk2 = StrUtil.tokenize('text', o_content)
+    same = False
+    for t1 in tk1:
+        for t2 in tk2:
+            if t1 == t2:
+                return True
+    return same
+
 
 
 main()

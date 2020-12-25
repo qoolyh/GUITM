@@ -6,7 +6,7 @@ from Parser_me import parseJson2STG
 ans = {}
 
 
-def get_input(STL: list):
+def get_input(STL: list): # returns a map {act: {'ipts':[inputs], ''}}
     res = {}
     ipt = [] #edges
     for i in range(len(STL)):
@@ -118,14 +118,14 @@ def getAnswer(ori):
 #
 #
 # print(getAnswer('data/a3_b31/a31.json'))
-test_json = 'data/a3_b31/a35.json'
-file = open(test_json, "rb")
-test = json.load(file)
-sdir = 'data/a3_b31/tar/a35/activitiesSummary.json'
-sg = parseJson2STG(sdir)
-STL = test_to_STL(test, sg)
-res = get_input(STL)
-for k in res:
-    print(k)
-    for n in res[k]['ipts']:
-        print(n)
+# test_json = 'data/a3_b31/a35.json'
+# file = open(test_json, "rb")
+# test = json.load(file)
+# sdir = 'data/a3_b31/tar/a35/activitiesSummary.json'
+# sg = parseJson2STG(sdir)
+# STL = test_to_STL(test, sg)
+# res = get_input(STL)
+# for k in res:
+#     print(k)
+#     for n in res[k]['ipts']:
+#         print(n)
