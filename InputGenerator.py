@@ -114,7 +114,7 @@ def getAnswer(ori):
                 else:
                     oneact = {act:[e['action'][1]]}
                     res.update(oneact)
-    return res1
+    return res
 #
 #
 # print(getAnswer('data/a3_b31/a31.json'))
