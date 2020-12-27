@@ -2,6 +2,8 @@ import copy
 import json
 import re
 
+from numpy.core.defchararray import isnumeric
+
 from StrUtil import StrUtil
 import simCal
 from InputGenerator import get_input, getAnswer
@@ -10,6 +12,7 @@ from Parser_me import parseJson2STG
 from simCal import single_elem_sim
 
 ANS = {}
+
 
 # def exhaustive_search(ipts: list, edges: list):
 #     res = {}
@@ -42,10 +45,10 @@ def exhaustive_search(SRC_ipts, TGT_ipts, ans, SRC, TGT):
             for comp in sorted_ipt:
                 if check(comp, ans[tgt]):
                     if tgt not in res:
-                        res.update({tgt:comp})
-                        look_forward+=1
+                        res.update({tgt: comp})
+                        look_forward += 1
                     if look_forward > 3:
-                        break # once you break, no more tgts will be matched
+                        break  # once you break, no more tgts will be matched
     return res
 
 
@@ -60,7 +63,7 @@ def sort_by_graph_sim(SRC_ipts, TGT_ipts, SRC, TGT, ans):
         tcounter = 1
         for t in TGT_ipts:
             if t not in ans:
-                tcounter+=1
+                tcounter += 1
                 continue
             src_i = SRC[s]
             tgt_i = TGT[t]
@@ -68,13 +71,13 @@ def sort_by_graph_sim(SRC_ipts, TGT_ipts, SRC, TGT, ans):
             if si.__contains__(gsim_i):
                 si[gsim_i].append(t)
             else:
-                si.update({gsim_i:[t]})
+                si.update({gsim_i: [t]})
                 score.append(gsim_i)
-            tcounter+=1
+            tcounter += 1
         score.sort(reverse=True)
         for k in score:
             tmp.extend(si[k])
-        gsim_Ranked.update({s:tmp})
+        gsim_Ranked.update({s: tmp})
         counter += 1
     return gsim_Ranked
 
@@ -89,22 +92,22 @@ def getInputEdges(STG):
         for edges in path:
             tmp = []
             elements = edges.target
-            if len(elements)>1:
+            if len(elements) > 1:
                 for e in elements:
-                    if isinstance(e,list):
+                    if isinstance(e, list):
                         tmp_e = []
                         for k in e:
                             if k['type'] == 'input':
                                 tmp_e.append(k)
-                        if len(tmp_e)>1:
+                        if len(tmp_e) > 1:
                             egs.append(tmp_e)
                     else:
                         if e['type'] == 'input':
                             tmp.append(e)
-            if len(tmp)>0:
+            if len(tmp) > 0:
                 egs.append(tmp)
-        if len(egs)>0:
-            iptEdge.update({key:egs})
+        if len(egs) > 0:
+            iptEdge.update({key: egs})
     return iptEdge
 
 
@@ -154,15 +157,15 @@ def check(ipt_comb, ans):
     return correct
 
 
-def A(array,  n): # return A(len(array),n)
+def A(array, n):  # return A(len(array),n)
     comp = []
     if n == 0:
         return comp
     for i in range(len(array)):
         copy_array = copy.deepcopy(array)
         copy_array.pop(i)
-        left = A(copy_array, n-1)
-        if len(left)==0:
+        left = A(copy_array, n - 1)
+        if len(left) == 0:
             comp.append([array[i]])
         else:
             for k in left:
@@ -202,7 +205,7 @@ def rank(ipts, target):
         if score2ipt.__contains__(score):
             score2ipt[score].append(i)
         else:
-            score2ipt.update({score:[i]})
+            score2ipt.update({score: [i]})
             scores.append(score)
     scores.sort(reverse=True)
     for s in scores:
@@ -228,14 +231,14 @@ def test_gsim(src, tgt):
 
 def main():
     cate = '5'
-    folder = 'a'+cate+'_b'+cate+'1'
-    src = 'a'+cate+'1'
-    ref = 'a'+cate+'2'
+    folder = 'a' + cate + '_b' + cate + '1'
+    src = 'a' + cate + '1'
+    ref = 'a' + cate + '2'
 
-    sdir = 'data/'+folder+'/tar/'+src+'/activitiesSummary.json'
-    tdir = 'data/'+folder+'/tar/'+ref+'/activitiesSummary.json'
-    test_json = 'data/'+folder+'/'+src+'.json'
-    ansjson = 'data/'+folder+'/'+ref+'.json'
+    sdir = 'data/' + folder + '/tar/' + src + '/activitiesSummary.json'
+    tdir = 'data/' + folder + '/tar/' + ref + '/activitiesSummary.json'
+    test_json = 'data/' + folder + '/' + src + '.json'
+    ansjson = 'data/' + folder + '/' + ref + '.json'
     sg = parseJson2STG(sdir)
     tg = parseJson2STG(tdir)
     file = open(test_json, "rb")
@@ -258,17 +261,19 @@ def main():
 def oracle_binding(STL):
     oracles = []
     for s in STL:
-        if hasattr(s,'oracle'):
+        if hasattr(s, 'oracle'):
             oracles.append(s.oracle)
     STL_ipts = get_input(STL)
     for o in oracles:
         o_text = o['text']
         o_desc = o['content-desc']
-        o_content = o_text+' '+o_desc
+        o_content = o_text + ' ' + o_desc
         for act in STL_ipts:
             ipts = STL_ipts[act]['ipts']
             for i in ipts:
-                text = i['text']+' '+i['action'][1]
+                if isnumeric(o_text) and isnumeric(i['action'][1]):
+                    print(i['action'][1], o_content)
+                text = i['text'] + ' ' + i['action'][1]
                 if similar_substr(text, o_content):
                     print(text, o_content)
 
@@ -284,8 +289,20 @@ def similar_substr(text, o_content):
     return same
 
 
+def isNum(s):
+    if isnumeric(s):
+        return True
+    else:
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
 
-main()
+
+# main()
+
+print(isNum('+1.300'))
 
 # for si in sg:
 #     if 'CreateAccountActivity' in si:
@@ -294,7 +311,6 @@ main()
 #             print(si, ti)
 #             print(v)
 #         break
-
 
 
 # ipt_p = 'data/a3_b31/a31.json'
