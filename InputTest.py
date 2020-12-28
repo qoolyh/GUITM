@@ -231,7 +231,8 @@ def test_gsim(src, tgt):
 
 def main():
     cate = '5'
-    folder = 'a' + cate + '_b' + cate + '1'
+    type = '2'
+    folder = 'a' + cate + '_b' + cate + type
     src = 'a' + cate + '1'
     ref = 'a' + cate + '2'
 
@@ -248,6 +249,9 @@ def main():
     ansf = json.load(file2)
     STL = test_to_STL(test, sg)
     oracle_binding(STL)
+    for s in STL:
+        if hasattr(s, 'binding'):
+            print(s.binding)
     # tipt = get_input_from_STG(tg)
     # sipt = get_input(STL)
     # ans = getAnswer(ansf)
@@ -270,12 +274,42 @@ def oracle_binding(STL):
         o_content = o_text + ' ' + o_desc
         for act in STL_ipts:
             ipts = STL_ipts[act]['ipts']
+            idx = STL_ipts[act]['idx']
             for i in ipts:
-                if isnumeric(o_text) and isnumeric(i['action'][1]):
-                    print(i['action'][1], o_content)
+                flag = False
+                if isNum(o_text) and isNum(i['action'][1]):
+                    flag = True
                 text = i['text'] + ' ' + i['action'][1]
                 if similar_substr(text, o_content):
-                    print(text, o_content)
+                    flag = True
+                if flag:
+                    if not hasattr(STL[idx],'binding'):
+                        STL[idx].binding = {}
+                    if 'activity' in o:
+                        if STL[idx].binding.__contains__(o['activity']):
+                            STL[idx].binding[o['activity']].append(i['resource-id'])
+                        else:
+                            STL[idx].binding = {o['activity']: [i['resource-id']]}
+
+
+def find_binds(ipt_state, STG):
+    lamda = 3
+    accessble_states = dfs(ipt_state, STG, lamda)
+    for accs in accessble_states:
+        goal = ipt_state
+
+
+def dfs(ipt_state, STG, lamda):
+    res = []
+    if lamda == 0:
+        return []
+    else:
+        for edge in ipt_state.edges:
+            toGraph = edge.toGraph
+            res.append(toGraph)
+            tmp = dfs(STG[toGraph], STG, lamda-1)
+            res.extend(tmp)
+    return res
 
 
 def similar_substr(text, o_content):
@@ -300,9 +334,8 @@ def isNum(s):
             return False
 
 
-# main()
+main()
 
-print(isNum('+1.300'))
 
 # for si in sg:
 #     if 'CreateAccountActivity' in si:
