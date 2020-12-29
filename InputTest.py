@@ -4,6 +4,7 @@ import re
 
 from numpy.core.defchararray import isnumeric
 
+import Util
 from StrUtil import StrUtil
 import simCal
 from InputGenerator import get_input, getAnswer
@@ -255,13 +256,15 @@ def main():
         find_binds(tmp, tg, tipt)
     ans = getAnswer(ansf)
     res = exhaustive_search(sipt, tipt, ans, sg, tg)
-
+    start_tgt = 'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0'
+    visited = []
+    tgt_paths= []
     for r in res:
         tgt_ipt = r
         src_ipts = res[r]
-
-        print(r)
-        print(res[r])
+        paths_r = Util.getPath(start_tgt, r, visited)
+        print(paths_r)
+        #print(res[r])
 
 
 def oracle_binding(STL):
@@ -300,6 +303,7 @@ def find_binds(sid, STG, ipts):
     for accs in accessble_states:
         txts = ipts[sid]
         for t in txts:
+            print(t)
             res = contain_str(t['inputText'], STG[accs])
             if len(res)>0:
                 for e in res:
