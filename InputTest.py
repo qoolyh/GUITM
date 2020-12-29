@@ -4,6 +4,7 @@ import re
 
 from numpy.core.defchararray import isnumeric
 
+import Init
 import Util
 from StrUtil import StrUtil
 import simCal
@@ -232,7 +233,7 @@ def test_gsim(src, tgt):
 
 def main():
     cate = '3'
-    type = '2'
+    type = '1'
     folder = 'a' + cate + '_b' + cate + type
     src = 'a' + cate + '1'
     ref = 'a' + cate + '2'
@@ -241,6 +242,10 @@ def main():
     tdir = 'data/' + folder + '/tar/' + ref + '/activitiesSummary.json'
     test_json = 'data/' + folder + '/' + src + '.json'
     ansjson = 'data/' + folder + '/' + ref + '.json'
+
+    start_tgt = 'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0'
+    sim_json = "data/a3_b31/sim_a31.json"
+    Init.initAll(sdir, tdir, test_json, sim_json, "a31_a32", start_tgt, 'a3_b31', src, ref)
     sg = parseJson2STG(sdir)
     tg = parseJson2STG(tdir)
     file = open(test_json, "rb")
@@ -256,15 +261,21 @@ def main():
         find_binds(tmp, tg, tipt)
     ans = getAnswer(ansf)
     res = exhaustive_search(sipt, tipt, ans, sg, tg)
-    start_tgt = 'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0'
+
     visited = []
     tgt_paths= []
     for r in res:
         tgt_ipt = r
         src_ipts = res[r]
         paths_r = Util.getPath(start_tgt, r, visited)
+        print('from ',start_tgt, ' to', r)
         print(paths_r)
-        #print(res[r])
+        r_binding = tg[r].binding
+        for k in r_binding:
+            paths_2 = Util.getPath(r, k, [])
+            print('__from ', r, ' to', k)
+            print(paths_2)
+
 
 
 def oracle_binding(STL):
@@ -303,10 +314,10 @@ def find_binds(sid, STG, ipts):
     for accs in accessble_states:
         txts = ipts[sid]
         for t in txts:
-            print(t)
             res = contain_str(t['inputText'], STG[accs])
             if len(res)>0:
                 for e in res:
+                    print('_______', sid)
                     if not hasattr(STG[sid],'binding'):
                         STG[sid].binding = {}
                     if STG[sid].binding.__contains__(accs):
