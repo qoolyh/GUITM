@@ -230,7 +230,7 @@ def test_gsim(src, tgt):
 
 
 def main():
-    cate = '5'
+    cate = '3'
     type = '2'
     folder = 'a' + cate + '_b' + cate + type
     src = 'a' + cate + '1'
@@ -249,17 +249,19 @@ def main():
     ansf = json.load(file2)
     STL = test_to_STL(test, sg)
     oracle_binding(STL)
-    for s in STL:
-        if hasattr(s, 'binding'):
-            print(s.binding)
-    # tipt = get_input_from_STG(tg)
-    # sipt = get_input(STL)
-    # ans = getAnswer(ansf)
-    # print(ans)
-    # res = exhaustive_search(sipt,tipt, ans, sg, tg)
-    # for r in res:
-    #     print(r)
-    #     print(res[r])
+    tipt = get_input_from_STG(tg)
+    sipt = get_input(STL)
+    for tmp in tipt:
+        find_binds(tmp, tg, tipt)
+    ans = getAnswer(ansf)
+    res = exhaustive_search(sipt, tipt, ans, sg, tg)
+
+    for r in res:
+        tgt_ipt = r
+        src_ipts = res[r]
+
+        print(r)
+        print(res[r])
 
 
 def oracle_binding(STL):
@@ -292,11 +294,35 @@ def oracle_binding(STL):
                             STL[idx].binding = {o['activity']: [i['resource-id']]}
 
 
-def find_binds(ipt_state, STG):
+def find_binds(sid, STG, ipts):
     lamda = 3
-    accessble_states = dfs(ipt_state, STG, lamda)
+    accessble_states = dfs(STG[sid], STG, lamda)
     for accs in accessble_states:
-        goal = ipt_state
+        txts = ipts[sid]
+        for t in txts:
+            res = contain_str(t['inputText'], STG[accs])
+            if len(res)>0:
+                for e in res:
+                    if not hasattr(STG[sid],'binding'):
+                        STG[sid].binding = {}
+                    if STG[sid].binding.__contains__(accs):
+                        if t['resource-id'] not in STG[sid].binding[accs]:
+                            STG[sid].binding[accs].append(t['resource-id'])
+                    else:
+                        STG[sid].binding.update({accs: [t['resource-id']]})
+
+
+def contain_str(st, state):
+    res = []
+    elems = state.elements
+    for e in elems:
+        if isNum(st):
+            if isNum(e.text):
+                res.append(e)
+        if similar_substr(st, e.text):
+            res.append(e)
+    return res
+
 
 
 def dfs(ipt_state, STG, lamda):
@@ -308,7 +334,8 @@ def dfs(ipt_state, STG, lamda):
             toGraph = edge.toGraph
             res.append(toGraph)
             tmp = dfs(STG[toGraph], STG, lamda-1)
-            res.extend(tmp)
+            if tmp:
+                res.extend(tmp)
     return res
 
 
