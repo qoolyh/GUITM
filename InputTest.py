@@ -43,7 +43,6 @@ def exhaustive_search(SRC_ipts, TGT_ipts, ans, SRC, TGT):
             if tgt not in ans:
                 continue
             sorted_ipt = priority_rank_A(ipt['ipts'], TGT_ipts[tgt])
-            print('comparing to ', tgt, len(sorted_ipt))
             for comp in sorted_ipt:
                 if check(comp, ans[tgt]):
                     if tgt not in res:
@@ -236,7 +235,7 @@ def main():
     type = '1'
     folder = 'a' + cate + '_b' + cate + type
     src = 'a' + cate + '1'
-    ref = 'a' + cate + '2'
+    ref = 'a' + cate + '5'
 
     sdir = 'data/' + folder + '/tar/' + src + '/activitiesSummary.json'
     tdir = 'data/' + folder + '/tar/' + ref + '/activitiesSummary.json'
@@ -244,8 +243,9 @@ def main():
     ansjson = 'data/' + folder + '/' + ref + '.json'
 
     start_tgt = 'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0'
+    start_tgt = 'com.yelp.android.nearby.ui.ActivityNearby0'
     sim_json = "data/a3_b31/sim_a31.json"
-    Init.initAll(sdir, tdir, test_json, sim_json, "a31_a32", start_tgt, 'a3_b31', src, ref)
+    Init.initAll(sdir, tdir, test_json, sim_json, "a31_a35", start_tgt, 'a3_b31', src, ref)
     sg = parseJson2STG(sdir)
     tg = parseJson2STG(tdir)
     file = open(test_json, "rb")
@@ -264,18 +264,50 @@ def main():
 
     visited = []
     tgt_paths= []
-    for r in res:
-        tgt_ipt = r
-        src_ipts = res[r]
-        paths_r = Util.getPath(start_tgt, r, visited)
-        print('from ',start_tgt, ' to', r)
-        print(paths_r)
-        r_binding = tg[r].binding
-        for k in r_binding:
-            paths_2 = Util.getPath(r, k, [])
-            print('__from ', r, ' to', k)
-            print(paths_2)
+    SI_paths, IO_paths = STG_pruning(tg, res, start_tgt)
+    for p in SI_paths:
+        paths = SI_paths[p]
+        print('_____________', p)
+        i = 1
+        for edges in paths:
+            print('path____',i)
+            i+=1
+            for e in edges:
+                print(e.fromGraph, e.toGraph)
+    # for r in res:
+    #     tgt_ipt = r
+    #     src_ipts = res[r]
+    #     print(tgt_ipt, src_ipts)
+    #     paths_r = Util.getPath(start_tgt, r, visited)
+    #     print('from ',start_tgt, ' to', r)
+    #     if hasattr(tg[r], 'binding'):
+    #         r_binding = tg[r].binding
+    #         for k in r_binding:
+    #             paths_2 = Util.getPath(r, k, [])
+    #             print('__from ', r, ' to', k)
+    #             for pr in paths_2[1]:
+    #                 for e in pr:
+    #                     print(e.fromGraph, e.toGraph)
+    #                 print('____________')
 
+
+def STG_pruning(STG, ipt_matching_res, start_tgt):
+    SI_paths = {} # getting paths from start to correct_inputting states
+    IO_paths = {}
+    for r in ipt_matching_res:
+        tgt_ipt = r
+        src_ipts = ipt_matching_res[r]
+        si_paths_r = Util.getPath(start_tgt, r, [])
+        SI_paths.update({r: si_paths_r[1]})
+        if hasattr(STG[r], 'binding'):
+            r_binding = STG[r].binding
+            for k in r_binding:
+                io_paths_k = Util.getPath(r, k, [])
+                if IO_paths.__contains__(r):
+                    IO_paths[r].append({k:io_paths_k[1]})
+                else:
+                    IO_paths.update({r:[{k:io_paths_k[1]}]})
+    return SI_paths, IO_paths
 
 
 def oracle_binding(STL):
@@ -317,7 +349,6 @@ def find_binds(sid, STG, ipts):
             res = contain_str(t['inputText'], STG[accs])
             if len(res)>0:
                 for e in res:
-                    print('_______', sid)
                     if not hasattr(STG[sid],'binding'):
                         STG[sid].binding = {}
                     if STG[sid].binding.__contains__(accs):
