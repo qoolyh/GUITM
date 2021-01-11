@@ -234,8 +234,8 @@ def main():
     cate = '3'
     type = '1'
     folder = 'a' + cate + '_b' + cate + type
-    src = 'a' + cate + '1'
-    ref = 'a' + cate + '5'
+    src = 'a' + cate + '5'
+    ref = 'a' + cate + '2'
 
     sdir = 'data/' + folder + '/tar/' + src + '/activitiesSummary.json'
     tdir = 'data/' + folder + '/tar/' + ref + '/activitiesSummary.json'
@@ -244,8 +244,8 @@ def main():
 
     start_tgt = 'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0'
     start_tgt = 'com.yelp.android.nearby.ui.ActivityNearby0'
-    sim_json = "data/a3_b31/sim_a31.json"
-    Init.initAll(sdir, tdir, test_json, sim_json, "a31_a35", start_tgt, 'a3_b31', src, ref)
+    sim_json = "data/a3_b31/sim_a35.json"
+    Init.initAll(sdir, tdir, test_json, sim_json, "a35_a31", start_tgt, 'a3_b31', src, ref)
     sg = parseJson2STG(sdir)
     tg = parseJson2STG(tdir)
     file = open(test_json, "rb")
@@ -254,26 +254,31 @@ def main():
     file2 = open(ansjson, "rb")
     ansf = json.load(file2)
     STL = test_to_STL(test, sg)
+
     oracle_binding(STL)
     tipt = get_input_from_STG(tg)
     sipt = get_input(STL)
     for tmp in tipt:
         find_binds(tmp, tg, tipt)
     ans = getAnswer(ansf)
+    print(ans)
     res = exhaustive_search(sipt, tipt, ans, sg, tg)
+    print(res)
 
     visited = []
-    tgt_paths= []
+    tgt_paths = []
     SI_paths, IO_paths = STG_pruning(tg, res, start_tgt)
+    SI_path_src, IO_path_src = divide_STL(STL, res)
     for p in SI_paths:
         paths = SI_paths[p]
         print('_____________', p)
         i = 1
         for edges in paths:
-            print('path____',i)
-            i+=1
+            print('path____', i)
+            i += 1
             for e in edges:
                 print(e.fromGraph, e.toGraph)
+
     # for r in res:
     #     tgt_ipt = r
     #     src_ipts = res[r]
@@ -292,7 +297,7 @@ def main():
 
 
 def STG_pruning(STG, ipt_matching_res, start_tgt):
-    SI_paths = {} # getting paths from start to correct_inputting states
+    SI_paths = {}  # getting paths from start to correct_inputting states
     IO_paths = {}
     for r in ipt_matching_res:
         tgt_ipt = r
@@ -304,10 +309,52 @@ def STG_pruning(STG, ipt_matching_res, start_tgt):
             for k in r_binding:
                 io_paths_k = Util.getPath(r, k, [])
                 if IO_paths.__contains__(r):
-                    IO_paths[r].append({k:io_paths_k[1]})
+                    IO_paths[r].append({k: io_paths_k[1]})
                 else:
-                    IO_paths.update({r:[{k:io_paths_k[1]}]})
+                    IO_paths.update({r: [{k: io_paths_k[1]}]})
     return SI_paths, IO_paths
+
+
+def STL2dict(STL):
+    res = {}
+    for k in STL:
+        res.update({k.act: k})
+    return res
+
+
+def idxof(STL, act):
+    counter = 0
+    find = False
+    for k in STL:
+        if k.act == act:
+            find = True
+            break
+        counter+=1
+    if find:
+        return counter
+    else:
+        return -1
+
+
+def divide_STL(STL, res):
+    SI_paths = {}
+    IO_paths = {}
+    STL_dict = STL2dict(STL)
+    ipt_states = []
+    for k in res:
+        ipts = res[k]
+        for i in ipts:
+            if i['activity'] not in ipt_states:
+                ipt_states.append(i['activity'])
+    input_inserted = False
+    idx = idxof(STL, ipt_states[-1])
+    if idx!=-1:
+        SI_paths=STL[0:idx+1]
+        IO_paths = STL[idx+1: len(STL)]
+    return SI_paths, IO_paths
+
+
+def path_match(path_src, path_tgt):
 
 
 def oracle_binding(STL):
@@ -331,7 +378,7 @@ def oracle_binding(STL):
                 if similar_substr(text, o_content):
                     flag = True
                 if flag:
-                    if not hasattr(STL[idx],'binding'):
+                    if not hasattr(STL[idx], 'binding'):
                         STL[idx].binding = {}
                     if 'activity' in o:
                         if STL[idx].binding.__contains__(o['activity']):
@@ -347,9 +394,9 @@ def find_binds(sid, STG, ipts):
         txts = ipts[sid]
         for t in txts:
             res = contain_str(t['inputText'], STG[accs])
-            if len(res)>0:
+            if len(res) > 0:
                 for e in res:
-                    if not hasattr(STG[sid],'binding'):
+                    if not hasattr(STG[sid], 'binding'):
                         STG[sid].binding = {}
                     if STG[sid].binding.__contains__(accs):
                         if t['resource-id'] not in STG[sid].binding[accs]:
@@ -370,7 +417,6 @@ def contain_str(st, state):
     return res
 
 
-
 def dfs(ipt_state, STG, lamda):
     res = []
     if lamda == 0:
@@ -379,7 +425,7 @@ def dfs(ipt_state, STG, lamda):
         for edge in ipt_state.edges:
             toGraph = edge.toGraph
             res.append(toGraph)
-            tmp = dfs(STG[toGraph], STG, lamda-1)
+            tmp = dfs(STG[toGraph], STG, lamda - 1)
             if tmp:
                 res.extend(tmp)
     return res
@@ -407,8 +453,23 @@ def isNum(s):
             return False
 
 
-main()
+def moreThanOneIpt(STL):
+    ipt = get_input(STL)
+    counter = 0
+    prev = ''
+    for i in ipt:
+        print(i)
+        if prev:
+            if i == prev:
+                continue
+            else:
+                print(prev, i)
+                prev = i
+        else:
+            prev = i
 
+
+main()
 
 # for si in sg:
 #     if 'CreateAccountActivity' in si:
