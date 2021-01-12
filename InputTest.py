@@ -343,9 +343,12 @@ def path_match(path_src, path_tgt, forSI = False, prev_src = '', prev_tgt = ''):
         max = 0
         path = {}
         for first_t in path_tgt:
-            connect, prefixes = Util.getPath(prev_tgt, path_tgt[first_t], [])
+            connect, prefixes = Util.getPath(prev_tgt, path_tgt[first_t], [], True)
             for prefix in prefixes:
                 jump = len(prefix)
+                for edge in prefix:
+                    event = edge.target
+
 
 
 def seqSim(seq_src, seq_tgt):
