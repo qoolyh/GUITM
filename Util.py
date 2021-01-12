@@ -71,17 +71,25 @@ def find_out(element, state):
         return False
 
 
-def get_edge(from_graph_id, to_graph_id):
+def get_edge(from_graph_id, to_graph_id, mute_ipt= False):
     edge = []
     TGT_G = Gol.get_value('TGT_G')  # graph info of target app
     edges = TGT_G[from_graph_id].edges
     for e in edges:
         if e.toGraph == to_graph_id:
-            edge = e
+            if mute_ipt:
+                for i in range(len(e.target)):
+                    if isinstance(e.target[i], list):
+                        tmp_edge = copy.deepcopy(e)
+                        tmp_edge.target[i] = e.target[i][-1]
+                        edge = tmp_edge
+
+            else:
+                edge = e
     return edge
 
 
-def getPath(fromGraph, toGraph, visited):
+def getPath(fromGraph, toGraph, visited, mute_ipt= False):
     AM = Gol.get_value('adjencent_matrix')
     path_cache = Gol.get_value('path_cache')
     TGT_G = Gol.get_value('TGT_G')
@@ -96,20 +104,21 @@ def getPath(fromGraph, toGraph, visited):
         connect = AM.__contains__(key)
         way = []
         if connect:
-            way.append([get_edge(fromGraph, toGraph)])
+            way.append([get_edge(fromGraph, toGraph, mute_ipt)])
         for i in TGT_G:
             tmp_key = fromGraph+'_'+i
             if AM.__contains__(tmp_key) and i not in visited:
-                tmp, ways = getPath(i, toGraph, visited)
+                tmp, ways = getPath(i, toGraph, visited, mute_ipt)
                 if tmp:
                     connect = tmp
                     for tmpPath in ways:
                         if tmpPath:
-                            newPath = [get_edge(fromGraph, i)]
+                            newPath = [get_edge(fromGraph, i, mute_ipt)]
                             newPath.extend(tmpPath)
                             way.append(newPath)
         path_cache.update({key:way})
     return connect, way
+
 
 
 def readJson(filename):

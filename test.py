@@ -3,7 +3,10 @@ import math
 from nltk.corpus import wordnet as wn
 from itertools import product
 
+import Parser_STL
+import Parser_me
 import SimUtil
+import Util
 import simCal
 from Parser_me import parseJson2STG
 from StrUtil import StrUtil
@@ -81,27 +84,13 @@ def haveEdge(tgt, s):
         # return str == v
 
 def main():
-    src = 'data/a2_b22/src/a22/activitiesSummary.json'
-    t = 'data/a2_b22/a22.json'
-    SRC = json_to_STG(src)
-    file = open(t, "rb")
-    test = json.load(file)
-    STL = test_to_STL(test, SRC)
-    for state in STL:
-        print(len(state.edges))
-        print(state.act)
-        if hasattr(state,'oracle'):
-            print('oracle.....', state.oracle)
-            print('istext....', state.oracle['isTxt'], state.oracle['oTxt'])
-            print('isElem....', state.oracle['isElem'])
-        print('-----------')
-        if hasattr(state,'bind_to'):
-            print('bind----------', state.bind_to)
+    src = 'data/a3_b31/src/a31/activitiesSummary.json'
+    start = 'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0'
+    end = 'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0'
+    sg = Parser_me.parseJson2STG(src)
+    edges = Util.getPath(sg[start], sg[end], [])
+    print(edges)
 
-    # str1 = 'menu_profile_name'
-    # str2 = 'Config_Menu_NAME'
-    # dis = SimUtil.arraySim(StrUtil.tokenize("resource-id", str1), StrUtil.tokenize("resource-id", str2))
-    # print(dis)
 
 
 def testGSim_tf(sg, tg):
@@ -145,18 +134,21 @@ def testGSim_w2v(sg, tg):
 
 
 
-sdir = 'data/a3_b31/tar/a31/activitiesSummary.json'
-tdir = 'data/a3_b31/tar/a35/activitiesSummary.json'
-sg = parseJson2STG(sdir)
-tg = parseJson2STG(tdir)
-for si in sg:
-    if 'CreateAccountActivity' in si:
-        for ti in tg:
-            v = simCal.gSim_baseline(sg[si].elements, tg[ti].elements)
-            print(si, ti)
-            print(v)
-        break
+main()
 
+#
+# sdir = 'data/a3_b31/tar/a31/activitiesSummary.json'
+# tdir = 'data/a3_b31/tar/a35/activitiesSummary.json'
+# sg = parseJson2STG(sdir)
+# tg = parseJson2STG(tdir)
+# for si in sg:
+#     if 'CreateAccountActivity' in si:
+#         for ti in tg:
+#             v = simCal.gSim_baseline(sg[si].elements, tg[ti].elements)
+#             print(si, ti)
+#             print(v)
+#         break
+#
 #
 # res = testGSim_w2v(sg,tg)
 # for v in res:

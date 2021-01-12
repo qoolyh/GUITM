@@ -16,21 +16,6 @@ from simCal import single_elem_sim
 ANS = {}
 
 
-# def exhaustive_search(ipts: list, edges: list):
-#     res = {}
-#     map = sort_by_Graph_sim(ipts, edges)
-#     for i in ipts:
-#         ipt = ipts[i]
-#         tgt = edges[map[i]]
-#         sorted_ipt = priority_rank_A(ipt, tgt)
-#         for comp in sorted_ipt:
-#             if check(comp, tgt):
-#                 if not res.__contains__(map[i]):
-#                     res.update({map[i]:comp})
-#                 break
-#     return res
-
-
 def exhaustive_search(SRC_ipts, TGT_ipts, ans, SRC, TGT):
     res = {}
     map = sort_by_graph_sim(SRC_ipts, TGT_ipts, SRC, TGT, ans)
@@ -214,28 +199,13 @@ def rank(ipts, target):
     return ranked_ipt
 
 
-# graph_p = 'data/a1_b11/tar/a15/activitiesSummary.json'
-# graphs = parseJson2STG(graph_p)
-# for k in graphs:
-#     graph = graphs[k]
-#     print(id_format(graph))
-#     break
-
-def test_gsim(src, tgt):
-    s_g = parseJson2STG('data/a3_b31/tar/a31/activitiesSummary.json')
-    t_g = parseJson2STG('data/a3_b31/tar/a32/activitiesSummary.json')
-    for sg in s_g:
-        for tg in t_g:
-            s_graph = s_g[sg]
-            t_graph = t_g[tg]
-
 
 def main():
     cate = '3'
     type = '1'
     folder = 'a' + cate + '_b' + cate + type
-    src = 'a' + cate + '5'
-    ref = 'a' + cate + '2'
+    src = 'a' + cate + '2'
+    ref = 'a' + cate + '1'
 
     sdir = 'data/' + folder + '/tar/' + src + '/activitiesSummary.json'
     tdir = 'data/' + folder + '/tar/' + ref + '/activitiesSummary.json'
@@ -246,38 +216,50 @@ def main():
     start_tgt = 'com.yelp.android.nearby.ui.ActivityNearby0'
     sim_json = "data/a3_b31/sim_a35.json"
     Init.initAll(sdir, tdir, test_json, sim_json, "a35_a31", start_tgt, 'a3_b31', src, ref)
-    sg = parseJson2STG(sdir)
-    tg = parseJson2STG(tdir)
-    file = open(test_json, "rb")
-    test = json.load(file)
 
-    file2 = open(ansjson, "rb")
-    ansf = json.load(file2)
-    STL = test_to_STL(test, sg)
+    src = 'data/a3_b31/src/a31/activitiesSummary.json'
+    start = 'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0'
+    end = 'com.contextlogic.wish.activity.browse.BrowseActivity0'
+    sg = parseJson2STG(src)
+    connect, paths = Util.getPath(start, end, [], True)
+    for p in paths:
+        if len(p)== 1:
+            for edge in p:
+                if isinstance(edge.target, list):
+                    for t in edge.target:
+                        print(t)
 
-    oracle_binding(STL)
-    tipt = get_input_from_STG(tg)
-    sipt = get_input(STL)
-    for tmp in tipt:
-        find_binds(tmp, tg, tipt)
-    ans = getAnswer(ansf)
-    print(ans)
-    res = exhaustive_search(sipt, tipt, ans, sg, tg)
-    print(res)
-
-    visited = []
-    tgt_paths = []
-    SI_paths, IO_paths = STG_pruning(tg, res, start_tgt)
-    SI_path_src, IO_path_src = divide_STL(STL, res)
-    for p in SI_paths:
-        paths = SI_paths[p]
-        print('_____________', p)
-        i = 1
-        for edges in paths:
-            print('path____', i)
-            i += 1
-            for e in edges:
-                print(e.fromGraph, e.toGraph)
+    # sg = parseJson2STG(sdir)
+    # tg = parseJson2STG(tdir)
+    # file = open(test_json, "rb")
+    # test = json.load(file)
+    #
+    # file2 = open(ansjson, "rb")
+    # ansf = json.load(file2)
+    # STL = test_to_STL(test, sg)
+    #
+    # oracle_binding(STL)
+    # tipt = get_input_from_STG(tg)
+    # sipt = get_input(STL)
+    # for tmp in tipt:
+    #     find_binds(tmp, tg, tipt)
+    # ans = getAnswer(ansf)
+    # res = exhaustive_search(sipt, tipt, ans, sg, tg)
+    # print(res)
+    #
+    # visited = []
+    # tgt_paths = []
+    # SI_paths, IO_paths = STG_pruning(tg, res, start_tgt)
+    # SI_path_src, IO_path_src = divide_STL(STL, res)
+    # for p in SI_paths:
+    #     paths = SI_paths[p]
+    #     print('_____________', p)
+    #     i = 1
+    #     for edges in paths:
+    #         print('path____', i)
+    #         i += 1
+    #         for e in edges:
+    #             print(e.fromGraph, e.toGraph, e.target)
 
     # for r in res:
     #     tgt_ipt = r
@@ -315,13 +297,6 @@ def STG_pruning(STG, ipt_matching_res, start_tgt):
     return SI_paths, IO_paths
 
 
-def STL2dict(STL):
-    res = {}
-    for k in STL:
-        res.update({k.act: k})
-    return res
-
-
 def idxof(STL, act):
     counter = 0
     find = False
@@ -339,14 +314,12 @@ def idxof(STL, act):
 def divide_STL(STL, res):
     SI_paths = {}
     IO_paths = {}
-    STL_dict = STL2dict(STL)
     ipt_states = []
     for k in res:
         ipts = res[k]
         for i in ipts:
             if i['activity'] not in ipt_states:
                 ipt_states.append(i['activity'])
-    input_inserted = False
     idx = idxof(STL, ipt_states[-1])
     if idx!=-1:
         SI_paths=STL[0:idx+1]
@@ -354,7 +327,40 @@ def divide_STL(STL, res):
     return SI_paths, IO_paths
 
 
-def path_match(path_src, path_tgt):
+def path_match(path_src, path_tgt, forSI = False, prev_src = '', prev_tgt = ''):
+    if forSI:
+        max = 0
+        path = {}
+        first_src = path_src[0]
+        for first_t in path_tgt:
+            seq_tgt = subSeq(path_tgt, first_t)
+            sim_t = seqSim(path_src, seq_tgt)
+            if sim_t>max:
+                max = sim_t
+                path = seq_tgt
+        return max, path
+    else:
+        max = 0
+        path = {}
+        for first_t in path_tgt:
+            connect, prefixes = Util.getPath(prev_tgt, path_tgt[first_t], [])
+            for prefix in prefixes:
+                jump = len(prefix)
+
+
+def seqSim(seq_src, seq_tgt):
+    return 0
+
+
+def subSeq(seq, start):
+    res = {}
+    find = False
+    for key in seq:
+        if key == start:
+            find = True
+            if find:
+                res.update({key:seq[key]})
+    return res
 
 
 def oracle_binding(STL):
