@@ -248,12 +248,14 @@ def main():
             print('path____', i)
             i += 1
             for destination in desitination_paths:
-                print(destination)
-                paths = desitination_paths[destination]
-                for path in paths:
-                    print('one path')
-                    for edge in path:
-                       print(edge.fromGraph, edge.toGraph, edge.target)
+                print(destination, STL[-1].oracle['oTxt'])
+                v = simCal.o_sim(STL[-1], tg[destination])
+                print(v)
+                # paths = desitination_paths[destination]
+                # for path in paths:
+                #     print('one path')
+                #     for edge in path:
+                #        print(edge.fromGraph, edge.toGraph, edge.target)
 
     # for r in res:
     #     tgt_ipt = r

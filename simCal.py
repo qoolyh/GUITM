@@ -444,23 +444,25 @@ def graphSim_baseline(SRC, TGT):
 
 def o_sim(sg, tg):
     osim = -1
+    print('test osim....', arraySim(StrUtil.tokenize("content-desc", 'beta clean alpha dog eye face'), StrUtil.tokenize("content-desc", 'alpha alpha')))
+
     matched = ''
     if hasattr(sg,'oracle'):
         so = sg.oracle
         if so['isElem']:
             se = so
-            for te in tg.elems:
+            for te in tg.elements:
                 v = single_elem_sim(se, te)
                 if v>osim:
                     osim = v
                     matched = te
         else:
             stxt = so['oTxt']
-            for te in tg.elems:
-                v = arraySim(StrUtil.tokenize("content-desc", te.txt), StrUtil.tokenize("content-desc", stxt))
+            for te in tg.elements:
+                v = arraySim(StrUtil.tokenize("content-desc", te.text), StrUtil.tokenize("content-desc", stxt))
                 if v > osim:
                     osim = v
-                    matched = te.txt
+                    matched = te.text
     return osim, matched
 
 
