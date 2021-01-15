@@ -83,13 +83,34 @@ def haveEdge(tgt, s):
         return str.strip() == s['activity'].strip()
         # return str == v
 
+
+M = {}
+
+
+def T(i, A):
+    if i in M:
+        return M[i][0], M[i][1]
+    if i == len(A)-1:
+        return 1,[]
+    else:
+        mini = 99999
+        chosen = []
+        for k in range(i+1, min(A[i]+i, len(A)-1)+1):
+            score_k, chosens = T(k,A)
+            if score_k+1 < mini:
+                mini = score_k+1
+                chosen = [k]
+                chosen.extend(chosens)
+        M.update({i: [mini, chosen]})
+        return mini, chosen
+
+
 def main():
-    src = 'data/a3_b31/src/a31/activitiesSummary.json'
-    start = 'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0'
-    end = 'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0'
-    sg = Parser_me.parseJson2STG(src)
-    edges = Util.getPath(sg[start], sg[end], [])
-    print(edges)
+    A = [0,1,2,1,5,1,1,1,1,0]
+    mini, res = T(2,A)
+    v = [2]
+    v.extend(res)
+    print(mini, v)
 
 
 

@@ -442,6 +442,27 @@ def graphSim_baseline(SRC, TGT):
             #     print('heres the key...',key, tmp_res)
     return max
 
+def o_sim(sg, tg):
+    osim = -1
+    matched = ''
+    if hasattr(sg,'oracle'):
+        so = sg.oracle
+        if so['isElem']:
+            se = so
+            for te in tg.elems:
+                v = single_elem_sim(se, te)
+                if v>osim:
+                    osim = v
+                    matched = te
+        else:
+            stxt = so['oTxt']
+            for te in tg.elems:
+                v = arraySim(StrUtil.tokenize("content-desc", te.txt), StrUtil.tokenize("content-desc", stxt))
+                if v > osim:
+                    osim = v
+                    matched = te.txt
+    return osim, matched
+
 
 def element_sim(se, te):
     sid = se.id

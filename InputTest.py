@@ -1,5 +1,6 @@
 import copy
 import json
+import math
 import re
 
 from numpy.core.defchararray import isnumeric
@@ -204,8 +205,8 @@ def main():
     cate = '3'
     type = '1'
     folder = 'a' + cate + '_b' + cate + type
-    src = 'a' + cate + '2'
-    ref = 'a' + cate + '1'
+    src = 'a' + cate + '5'
+    ref = 'a' + cate + '2'
 
     sdir = 'data/' + folder + '/tar/' + src + '/activitiesSummary.json'
     tdir = 'data/' + folder + '/tar/' + ref + '/activitiesSummary.json'
@@ -217,49 +218,42 @@ def main():
     sim_json = "data/a3_b31/sim_a35.json"
     Init.initAll(sdir, tdir, test_json, sim_json, "a35_a31", start_tgt, 'a3_b31', src, ref)
 
-    src = 'data/a3_b31/src/a31/activitiesSummary.json'
-    start = 'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0'
-    end = 'com.contextlogic.wish.activity.browse.BrowseActivity0'
-    sg = parseJson2STG(src)
-    connect, paths = Util.getPath(start, end, [], True)
-    for p in paths:
-        if len(p)== 1:
-            for edge in p:
-                if isinstance(edge.target, list):
-                    for t in edge.target:
-                        print(t)
+    sg = parseJson2STG(sdir)
+    tg = parseJson2STG(tdir)
+    file = open(test_json, "rb")
+    test = json.load(file)
 
-    # sg = parseJson2STG(sdir)
-    # tg = parseJson2STG(tdir)
-    # file = open(test_json, "rb")
-    # test = json.load(file)
-    #
-    # file2 = open(ansjson, "rb")
-    # ansf = json.load(file2)
-    # STL = test_to_STL(test, sg)
-    #
-    # oracle_binding(STL)
-    # tipt = get_input_from_STG(tg)
-    # sipt = get_input(STL)
-    # for tmp in tipt:
-    #     find_binds(tmp, tg, tipt)
-    # ans = getAnswer(ansf)
-    # res = exhaustive_search(sipt, tipt, ans, sg, tg)
-    # print(res)
-    #
-    # visited = []
-    # tgt_paths = []
-    # SI_paths, IO_paths = STG_pruning(tg, res, start_tgt)
-    # SI_path_src, IO_path_src = divide_STL(STL, res)
-    # for p in SI_paths:
-    #     paths = SI_paths[p]
-    #     print('_____________', p)
-    #     i = 1
-    #     for edges in paths:
-    #         print('path____', i)
-    #         i += 1
-    #         for e in edges:
-    #             print(e.fromGraph, e.toGraph, e.target)
+    file2 = open(ansjson, "rb")
+    ansf = json.load(file2)
+    STL = test_to_STL(test, sg)
+
+    oracle_binding(STL)
+    tipt = get_input_from_STG(tg)
+    sipt = get_input(STL)
+    for tmp in tipt:
+        find_binds(tmp, tg, tipt)
+    ans = getAnswer(ansf)
+    res = exhaustive_search(sipt, tipt, ans, sg, tg)
+    print(res)
+
+    visited = []
+    tgt_paths = []
+    SI_paths, IO_paths = STG_pruning(tg, res, start_tgt)
+    SI_path_src, IO_path_src = divide_STL(STL, res)
+    for p in IO_paths:
+        io_pairs = IO_paths[p]
+        print('_____________', p)
+        i = 1
+        for desitination_paths in io_pairs:
+            print('path____', i)
+            i += 1
+            for destination in desitination_paths:
+                print(destination)
+                paths = desitination_paths[destination]
+                for path in paths:
+                    print('one path')
+                    for edge in path:
+                       print(edge.fromGraph, edge.toGraph, edge.target)
 
     # for r in res:
     #     tgt_ipt = r
@@ -287,7 +281,7 @@ def STG_pruning(STG, ipt_matching_res, start_tgt):
         si_paths_r = Util.getPath(start_tgt, r, [])
         SI_paths.update({r: si_paths_r[1]})
         if hasattr(STG[r], 'binding'):
-            r_binding = STG[r].binding
+            r_binding = STG[r].binding # one input may bind to multiple displays
             for k in r_binding:
                 io_paths_k = Util.getPath(r, k, [])
                 if IO_paths.__contains__(r):
@@ -328,31 +322,65 @@ def divide_STL(STL, res):
 
 
 def path_match(path_src, path_tgt, forSI = False, prev_src = '', prev_tgt = ''):
-    if forSI:
-        max = 0
-        path = {}
-        first_src = path_src[0]
-        for first_t in path_tgt:
-            seq_tgt = subSeq(path_tgt, first_t)
-            sim_t = seqSim(path_src, seq_tgt)
-            if sim_t>max:
-                max = sim_t
-                path = seq_tgt
-        return max, path
-    else:
-        max = 0
-        path = {}
-        for first_t in path_tgt:
+    max = 0
+    path = []
+    events = []
+    prev_evt_src = ''
+    if len(path_src) == 0:
+        return max, path, events
+    if not forSI:
+        prev_evt_src = STL[prev_src].edges[-1]
+    for first_t in path_tgt:
+        event_sim = 0
+        matched_path = []
+        matched_event = []
+        if not forSI:
             connect, prefixes = Util.getPath(prev_tgt, path_tgt[first_t], [], True)
-            for prefix in prefixes:
-                jump = len(prefix)
-                for edge in prefix:
-                    event = edge.target
+            event_sim, matched_path, matched_event = find_best_event(prefixes, prev_evt_src)
+        graph_sim = simCal.gSim_baseline(STL[0], STG[first_t])
+        oracle_sim = simCal.o_sim(STL[0], STG[first_t])
+        seq_tgt = subSeq(path_tgt, first_t)
+        seq_src = subSeq(path_src, list(path_src)[0])
+        seq_sim, matched_seq, matched_events = path_match(seq_src, seq_tgt, forSI, list(path_src)[0], first_t)
+        sim_t = event_sim + graph_sim + oracle_sim + seq_sim
+        path_t = matched_path.extend(matched_seq)
+        events_t = matched_event.extend(matched_events)
+        if sim_t > max:
+            max = sim_t
+            path = path_t
+            events = events_t
+    return max, path, events
+    # else:
+    #     max = 0
+    #     path = {}
+    #     prev_evt_src = STL[prev_src].edges[-1]
+    #     for first_t in path_tgt:
+    #         connect, prefixes = Util.getPath(prev_tgt, path_tgt[first_t], [], True)
+    #         event_sim, matched_path, matched_event = find_best_event(prefixes, prev_evt_src)
+    #         graph_sim = simCal.gSim_baseline(STL[0], STG[first_t])
+    #         oracle_sim = simCal.o_sim(STL[0], STG[first_t])
+    #         seq_tgt = subSeq(path_tgt, first_t)
+    #         seq_src = subSeq(path_src, list(path_src)[0])
+    #         seq_sim, matched_seq, matched_events = path_match(seq_src, seq_tgt, forSI, list(path_src)[0], first_t, STL, STG)
+    #
+    #         seq_sim, matched_seq, matched_events = seq_matcher(path_src, seq_tgt)
 
 
-
-def seqSim(seq_src, seq_tgt):
-    return 0
+def find_best_event(paths, src_evt):
+    best_path = []
+    matched_event = ''
+    max_score = 0
+    for path in paths:
+        jump = len(path)
+        jump_cost = math.log(abs(jump - 1) + 1, 2) + 1
+        for edge in path:
+            event = edge.target
+            esim_curr = simCal.single_elem_sim(src_evt, event) / jump_cost
+            if esim_curr > max_score:
+                max_score = esim_curr
+                matched_event = event
+                best_path = path
+    return max_score, best_path, matched_event
 
 
 def subSeq(seq, start):
