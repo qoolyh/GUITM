@@ -106,11 +106,16 @@ def T(i, A):
 
 
 def main():
-    A = [0,1,2,1,5,1,1,1,1,0]
-    mini, res = T(2,A)
-    v = [2]
-    v.extend(res)
-    print(mini, v)
+    # A = [0,1,2,1,5,1,1,1,1,0]
+    # mini, res = T(2,A)
+    # v = [2]
+    # v.extend(res)
+    # print(mini, v)
+    a1 = StrUtil.tokenize("text", 'Join')
+    a2 = StrUtil.tokenize("text", 'New? Create an Account')
+    a3 = StrUtil.tokenize("text", 'Have an account? Sign in')
+    print(simCal.arraySim(a1, a2))
+    print(simCal.arraySim(a1, a3))
 
 
 
