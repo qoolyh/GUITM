@@ -355,9 +355,12 @@ def single_elem_sim(src_elem, tgt_elem):
     #         return 0
     # if src_elem["action"][0] == "KEY_BACK":
     #     return 0
-    tgt_id = tgt_elem['resource-id'].split("/")[1]
-    src_id = src_elem['resource-id'].split("/")[1]
-
+    tgt_id = tgt_elem['resource-id']
+    src_id = src_elem['resource-id']
+    if '/' in tgt_elem['resource-id']:
+        tgt_id = tgt_elem['resource-id'].split("/")[1]
+    if '/' in src_elem['resource-id']:
+        src_id = src_elem['resource-id'].split("/")[1]
     tgt_txt = tgt_elem['text']
     tgt_cls = tgt_elem['class']
     tgt_desc = tgt_elem['content-desc']
@@ -444,8 +447,6 @@ def graphSim_baseline(SRC, TGT):
 
 def o_sim(sg, tg):
     osim = -1
-    print('test osim....', arraySim(StrUtil.tokenize("content-desc", 'beta clean alpha dog eye face'), StrUtil.tokenize("content-desc", 'alpha alpha')))
-
     matched = ''
     if hasattr(sg,'oracle'):
         so = sg.oracle

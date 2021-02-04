@@ -8,6 +8,7 @@ import Parser_me
 import SimUtil
 import Util
 import simCal
+from InputTest import basicDP
 from Parser_me import parseJson2STG
 from StrUtil import StrUtil
 from ElemSim import arraySim
@@ -105,17 +106,16 @@ def T(i, A):
         return mini, chosen
 
 
+def func(v1, v2):
+    res = 1 if v1 == v2 else 0
+    return res
+
+
 def main():
-    # A = [0,1,2,1,5,1,1,1,1,0]
-    # mini, res = T(2,A)
-    # v = [2]
-    # v.extend(res)
-    # print(mini, v)
-    a1 = StrUtil.tokenize("text", 'Join')
-    a2 = StrUtil.tokenize("text", 'New? Create an Account')
-    a3 = StrUtil.tokenize("text", 'Have an account? Sign in')
-    print(simCal.arraySim(a1, a2))
-    print(simCal.arraySim(a1, a3))
+    list1 = [1,0,0,1,0]
+    list2 = [0,0,1,1,0]
+    max, rec = basicDP(list1, list2, -1, -1, func)
+    print(max, rec)
 
 
 
