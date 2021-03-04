@@ -227,6 +227,7 @@ def main():
         print(iop)
         score, res = SeqMatcher.seq_match(IO_path_src, IO_paths, STG)
         print(score)
+        print(res)
 
 
     # for p in IO_paths:

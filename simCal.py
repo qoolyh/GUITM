@@ -411,6 +411,34 @@ def gSim_baseline(SRC, TGT):
 VIS = {}
 
 
+def graphsim_simple(SRC, TGT):
+    score = 0
+    src_id_str = ''
+    src_txt_str = ''
+    tgt_id_str = ''
+    tgt_txt_str = ''
+    for s in SRC:
+        id = s.id
+        if '/' in id:
+            id = id.split("/")[-1]
+        txt = s.text
+        src_id_str += id+' '+s.desc+' '
+        src_txt_str += txt+' '
+
+    for t in TGT:
+        id = t.id
+        if '/' in id:
+            id = id.split("/")[-1]
+        txt = t.text
+        src_id_str += id+' '+t.desc+' '
+        src_txt_str += txt+' '
+
+    idScore = arraySim(StrUtil.tokenize("content-desc", tgt_id_str), StrUtil.tokenize("content-desc", src_id_str))
+    txtScore = arraySim(StrUtil.tokenize("content-desc", tgt_txt_str), StrUtil.tokenize("content-desc", src_txt_str))
+    score = (idScore+txtScore)/2
+    return score
+
+
 def graphSim_baseline(SRC, TGT):
     max = 0
     si = 0
