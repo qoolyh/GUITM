@@ -383,9 +383,9 @@ def single_elem_sim(src_elem, tgt_elem):
     else:
         contentScore = arraySim(StrUtil.tokenize("text", tgt_txt), StrUtil.tokenize("text", src_txt))
 
-    src_desc = src_id + '_' + src_desc
-    tgt_desc = tgt_id + '_' + tgt_desc
-    # idScore = arraySim(StrUtil.tokenize("resource-id", tgt_id), StrUtil.tokenize("resource-id", src_id))
+    src_desc = src_txt + '_' + src_desc
+    tgt_desc = tgt_txt + '_' + tgt_desc
+    idScore = arraySim(StrUtil.tokenize("resource-id", tgt_id), StrUtil.tokenize("resource-id", src_id))
     descScore = arraySim(StrUtil.tokenize("content-desc", tgt_desc), StrUtil.tokenize("content-desc", src_desc))
     v = contentScore + descScore  # + clsScore
     v /= 2
@@ -422,18 +422,17 @@ def graphsim_simple(SRC, TGT):
         if '/' in id:
             id = id.split("/")[-1]
         txt = s.text
-        src_id_str += id+' '+s.desc+' '
-        src_txt_str += txt+' '
+        src_id_str += id
+        src_txt_str += txt+' '+s.desc+' '
 
     for t in TGT:
         id = t.id
         if '/' in id:
             id = id.split("/")[-1]
         txt = t.text
-        src_id_str += id+' '+t.desc+' '
-        src_txt_str += txt+' '
-
-    idScore = arraySim(StrUtil.tokenize("content-desc", tgt_id_str), StrUtil.tokenize("content-desc", src_id_str))
+        tgt_id_str += id
+        tgt_txt_str += txt+' '+t.desc+' '
+    idScore = arraySim(StrUtil.tokenize("content-desc", tgt_id_str), StrUtil.tokenize("content-desc", src_txt_str))
     txtScore = arraySim(StrUtil.tokenize("content-desc", tgt_txt_str), StrUtil.tokenize("content-desc", src_txt_str))
     score = (idScore+txtScore)/2
     return score

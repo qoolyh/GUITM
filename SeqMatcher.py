@@ -5,8 +5,7 @@ import simCal
 DP_res = {}
 
 
-def jump_cost(v1, v2):
-    return math.log(abs(v1 - v2) + 1, 2) + 1
+
 
 
 def basicDP(list1, list2, start1, start2, func, prev1, prev2, init=False):
@@ -44,12 +43,16 @@ def basicDP(list1, list2, start1, start2, func, prev1, prev2, init=False):
                     record = record_i
                 continue
             if i == len(list1)-1:
-                return jump_cost(i - prev1, j - prev2), []
-            v = func(list1[i], list2[j]) * jump_cost(i - prev1, j - prev2)
+                return SeqMatcher.jump_cost(i - prev1, j - prev2), []
+            v = func(list1[i], list2[j]) * SeqMatcher.jump_cost(i - prev1, j - prev2)
+            # v = func(list1[i], list2[j])
             left, left_rec = basicDP(list1, list2, i, j, func, i, j)  # i matched to j, so prev1 =i, prev2 = j
             left_ban, left_rec_ban = basicDP(list1, list2, i, start2, func, prev1, prev2)  # ban i, so prev1 kept
             left_kpt, left_rec_kpt = basicDP(list1, list2, start1, j, func, prev1, prev2)
-            print(i,j,'-', left, left_ban, left_kpt)
+            if len(list1[i].edges)>0:
+                tmp = list2[j].target[-1]
+                if isinstance(tmp, list):
+                    tmp = tmp[-1]
             if max <= v + left:
                 max = v + left
                 record = [j] + left_rec
@@ -95,6 +98,10 @@ class SeqMatcher:
         esim = simCal.single_elem_sim(event1, event2) if not empty else 0
         gsim = simCal.graphsim_simple(state1.elements, STG[edge2.fromGraph].elements)
         if esim + gsim > score:
-            score = esim + gsim
+            score = esim + gsim/4
             chosen_edge = edge2
         return score
+
+    @staticmethod
+    def jump_cost(v1, v2):
+        return 1 / (math.log(abs(v1 - v2) + 1, 100) + 1)

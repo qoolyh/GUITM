@@ -223,12 +223,26 @@ def main():
     tgt_paths = []
     SI_paths, IO_paths = STG_pruning(tg, res, start_tgt)
     SI_path_src, IO_path_src = divide_STL(STL, res)
+    n=0
+    sstr = []
+    for i in IO_path_src:
+        if len(i.edges)>0:
+            sstr.append(i.edges[-1]['text']+'!'+i.edges[-1]['content-desc'])
+    print(sstr)
     for iop in IO_paths:
-        print(iop)
-        score, res = SeqMatcher.seq_match(IO_path_src, iop, STG)
-        print(score)
-        print(res)
-        break
+        n+=1
+        if True:
+            str = []
+            for i in iop:
+                tmp = i.target[-1]
+                if isinstance(tmp, list):
+                    str.append(tmp[-1]['text']+"|"+tmp[-1]['content-desc'])
+                else:
+                    str.append(tmp['text']+"|"+tmp['content-desc'])
+            print(str)
+            score, res = SeqMatcher.seq_match(IO_path_src, iop, STG)
+            print(score*SeqMatcher.jump_cost(len(iop), len(IO_path_src)-1))
+            print(res)
 
 
     # for p in IO_paths:
