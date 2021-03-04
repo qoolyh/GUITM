@@ -6,6 +6,7 @@ import re
 from numpy.core.defchararray import isnumeric
 
 import Init
+from SeqMatcher import SeqMatcher
 import Util
 from StrUtil import StrUtil
 import simCal
@@ -222,7 +223,12 @@ def main():
     tgt_paths = []
     SI_paths, IO_paths = STG_pruning(tg, res, start_tgt)
     SI_path_src, IO_path_src = divide_STL(STL, res)
-    test_path(IO_path_src, IO_paths, SI_paths, SI_path_src[-1].edges[-1])
+    for iop in IO_paths:
+        print(iop)
+        score, res = SeqMatcher.seq_match(IO_path_src, IO_paths, STG)
+        print(score)
+
+
     # for p in IO_paths:
     #     io_pairs = IO_paths[p]
     #     print('_____________', p)
@@ -653,7 +659,7 @@ def moreThanOneIpt(STL):
         else:
             prev = i
 
-# main()
+main()
 
 # for si in sg:
 #     if 'CreateAccountActivity' in si:
