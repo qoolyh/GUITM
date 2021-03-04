@@ -49,6 +49,7 @@ def basicDP(list1, list2, start1, start2, func, prev1, prev2, init=False):
             left, left_rec = basicDP(list1, list2, i, j, func, i, j)  # i matched to j, so prev1 =i, prev2 = j
             left_ban, left_rec_ban = basicDP(list1, list2, i, start2, func, prev1, prev2)  # ban i, so prev1 kept
             left_kpt, left_rec_kpt = basicDP(list1, list2, start1, j, func, prev1, prev2)
+            print(i,j,'-', left, left_ban, left_kpt)
             if max <= v + left:
                 max = v + left
                 record = [j] + left_rec
@@ -72,7 +73,7 @@ class SeqMatcher:
         return score, res
 
     @staticmethod
-    def state_sim(state1, edges2):
+    def state_sim(state1, edge2):
         score = 0
         edge1 = state1.edges
         chosen_edge = []
@@ -83,18 +84,17 @@ class SeqMatcher:
                 event1 = event1[-1]
             else:
                 empty = True
-        for edge2 in edges2:
-            event2 = edge2.target
-            if isinstance(event2, list):
-                if len(event2)>0:
-                    event2 = event2[-1]
-                else:
-                    empty = True
-            if isinstance(event2, list):
+        event2 = edge2.target
+        if isinstance(event2, list):
+            if len(event2) > 0:
                 event2 = event2[-1]
-            esim = simCal.single_elem_sim(event1, event2) if not empty else 0
-            gsim = simCal.graphsim_simple(state1.elements, STG[edge2.fromGraph].elements)
-            if esim + gsim > score:
-                score = esim + gsim
-                chosen_edge = edge2
+            else:
+                empty = True
+        if isinstance(event2, list):
+            event2 = event2[-1]
+        esim = simCal.single_elem_sim(event1, event2) if not empty else 0
+        gsim = simCal.graphsim_simple(state1.elements, STG[edge2.fromGraph].elements)
+        if esim + gsim > score:
+            score = esim + gsim
+            chosen_edge = edge2
         return score

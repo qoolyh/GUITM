@@ -225,9 +225,10 @@ def main():
     SI_path_src, IO_path_src = divide_STL(STL, res)
     for iop in IO_paths:
         print(iop)
-        score, res = SeqMatcher.seq_match(IO_path_src, IO_paths, STG)
+        score, res = SeqMatcher.seq_match(IO_path_src, iop, STG)
         print(score)
         print(res)
+        break
 
 
     # for p in IO_paths:
