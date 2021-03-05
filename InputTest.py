@@ -225,11 +225,11 @@ def main():
     SI_path_src, IO_path_src = divide_STL(STL, res)
     n=0
     sstr = []
-    for i in IO_path_src:
+    for i in SI_path_src:
         if len(i.edges)>0:
             sstr.append(i.edges[-1]['text']+'!'+i.edges[-1]['content-desc'])
     print(sstr)
-    for iop in IO_paths:
+    for iop in SI_paths:
         n+=1
         if True:
             str = []
@@ -240,8 +240,8 @@ def main():
                 else:
                     str.append(tmp['text']+"|"+tmp['content-desc'])
             print(str)
-            score, res = SeqMatcher.seq_match(IO_path_src, iop, STG)
-            print(score*SeqMatcher.jump_cost(len(iop), len(IO_path_src)-1))
+            score, res = SeqMatcher.seq_match(SI_path_src, iop, STG)
+            print(score*SeqMatcher.jump_cost(len(iop), len(SI_path_src)-1))
             print(res)
 
 

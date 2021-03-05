@@ -68,11 +68,22 @@ def basicDP(list1, list2, start1, start2, func, prev1, prev2, init=False):
 
 class SeqMatcher:
     @staticmethod
-    def seq_match(src_STL, tgt_STL, stg):
+    def seq_match(src_STL, tgt_STL, stg, start = False):
         global STG
         STG = stg
         func = SeqMatcher.state_sim
-        score, res = basicDP(src_STL, tgt_STL, -1, -1, func, 0, 0, True)
+        score = 0
+        res = []
+        if start:
+            max = 0
+            res = []
+            for k in range(-1, len(tgt_STL)-1):
+                tmp_score , tmp_res = basicDP(src_STL, tgt_STL, -1, k, func, 0, k+1, True)
+                if tmp_score > max:
+                    max = tmp_score
+                    res = tmp_res
+        else:
+            score, res = basicDP(src_STL, tgt_STL, -1, -1, func, 0, 0, True)
         return score, res
 
     @staticmethod
