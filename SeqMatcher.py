@@ -68,7 +68,8 @@ def basicDP(list1, list2, start1, start2, func, prev1, prev2, init=False):
 
 class SeqMatcher:
     @staticmethod
-    def seq_match(src_STL, tgt_STL, stg, start = False):
+    def seq_match(src_STL, tgt_STL, stg, ipt_res, start = False):
+        #todo: 加入ipt_res，使得输入页面状态之间的jumpcost为0，减少跳步代价
         global STG
         STG = stg
         func = SeqMatcher.state_sim
@@ -84,6 +85,7 @@ class SeqMatcher:
                     res = tmp_res
         else:
             score, res = basicDP(src_STL, tgt_STL, -1, -1, func, 0, 0, True)
+        res.append(len(tgt_STL)-1)
         return score, res
 
     @staticmethod

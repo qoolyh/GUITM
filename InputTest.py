@@ -198,7 +198,7 @@ def main():
     ansjson = 'data/' + folder + '/' + ref + '.json'
 
     start_tgt = 'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0'
-    # start_tgt = 'com.yelp.android.nearby.ui.ActivityNearby0'
+    #start_tgt = 'com.yelp.android.nearby.ui.ActivityNearby0'
     sim_json = "data/a3_b31/sim_a35.json"
     Init.initAll(sdir, tdir, test_json, sim_json, "a35_a31", start_tgt, 'a3_b31', src, ref)
 
@@ -240,9 +240,30 @@ def main():
                 else:
                     str.append(tmp['text']+"|"+tmp['content-desc'])
             print(str)
-            score, res = SeqMatcher.seq_match(SI_path_src, iop, STG)
+            score, res = SeqMatcher.seq_match(SI_path_src, iop, STG, res)
             print(score*SeqMatcher.jump_cost(len(iop), len(SI_path_src)-1))
             print(res)
+    print('----------IO----------')
+    iostr = []
+    for i in IO_path_src:
+        if len(i.edges)>0:
+            iostr.append(i.edges[-1]['text']+'!'+i.edges[-1]['content-desc'])
+    print(iostr)
+    for iop in IO_paths:
+        n += 1
+        if True:
+            str = []
+            for i in iop:
+                tmp = i.target[-1]
+                if isinstance(tmp, list):
+                    str.append(tmp[-1]['text'] + "|" + tmp[-1]['content-desc'])
+                else:
+                    str.append(tmp['text'] + "|" + tmp['content-desc'])
+            print(str)
+            score, res = SeqMatcher.seq_match(IO_path_src, iop, STG, iptstates)
+            print(score * SeqMatcher.jump_cost(len(iop), len(IO_path_src) - 1))
+            print(res)
+            print(iop[res[-1]].toGraph)
 
 
     # for p in IO_paths:
@@ -326,9 +347,9 @@ def divide_STL(STL, res):
         for i in ipts:
             if i['activity'] not in ipt_states:
                 ipt_states.append(i['activity'])
-    idx = idxof(STL, ipt_states[-1])
+    idx = idxof(STL, ipt_states[0])
     if idx != -1:
-        SI_paths = STL[0:idx + 1]
+        SI_paths = STL[0:idx]
         IO_paths = STL[idx: len(STL)]
     return SI_paths, IO_paths
 

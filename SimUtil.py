@@ -16,12 +16,23 @@ def w2v_sim(w_from, w_to):
     return sim
 
 
+def is_reg_words(words):
+    tmp = ''.join(str(i).lower()+' ' for i in words)
+    registerwords = ['join', 'register', 'sign up', 'create account']
+    for w in registerwords:
+        if w in tmp:
+            return True
+    return False
+
+
 def arraySim(strArray, strArray2):
     scores = []
     # valid_new_words = []
     # valid_old_words = copy.deepcopy(strArray2)
     valid_new_words = set()
     valid_old_words = set(strArray2)
+    if is_reg_words(strArray) and is_reg_words(strArray2):
+        return 1
 
     for s1 in strArray:
         for s2 in strArray2:
@@ -98,3 +109,11 @@ def elem_sim(src_elem, tgt_elem):
                 v -= 0.3
             return v
 
+
+str0 = 'Sign Up!'
+str1 = 'Have an account? Sign in'
+str2 = 'New? Create an Account'
+
+v1 = arraySim(StrUtil.tokenize('text', str0), StrUtil.tokenize('text', str1))
+v2 = arraySim(StrUtil.tokenize('text', str0), StrUtil.tokenize('text', str2))
+print(v1, v2)
