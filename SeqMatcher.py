@@ -4,10 +4,6 @@ import simCal
 
 DP_res = {}
 
-
-
-
-
 def basicDP(list1, list2, start1, start2, func, prev1, prev2, init=False):
     if init:
         DP_res.clear()
@@ -69,12 +65,21 @@ def basicDP(list1, list2, start1, start2, func, prev1, prev2, init=False):
 class SeqMatcher:
     @staticmethod
     def seq_match(src_STL, tgt_STL, stg, ipt_res, start = False):
-        #todo: 加入ipt_res，使得输入页面状态之间的jumpcost为0，减少跳步代价
         global STG
         STG = stg
         func = SeqMatcher.state_sim
         score = 0
         res = []
+        global ipt_tgt
+        global ipt_src
+        ipt_tgt= len(ipt_res)
+        tmp_src = []
+        for k in ipt_res:
+            ipts = ipt_res[k]
+            for i in ipts:
+                if i['activity'] not in tmp_src:
+                    tmp_src.append(i['activity'])
+        ipt_src = len(tmp_src)
         if start:
             max = 0
             res = []
@@ -117,4 +122,6 @@ class SeqMatcher:
 
     @staticmethod
     def jump_cost(v1, v2):
-        return 1 / (math.log(abs(v1 - v2) + 1, 100) + 1)
+        v1 = max(v1-ipt_src, 0)
+        v2 = max(v2-ipt_tgt, 0)
+        return 1 / (math.log(abs(v1 - v2) + 1, 2) + 1)

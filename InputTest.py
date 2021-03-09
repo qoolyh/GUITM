@@ -2,6 +2,7 @@ import copy
 import json
 import math
 import re
+from collections import OrderedDict
 
 from numpy.core.defchararray import isnumeric
 
@@ -16,7 +17,37 @@ from Parser_me import parseJson2STG
 from simCal import single_elem_sim
 
 ANS = {}
+start_act = {
+    'a11':'acr.browser.lightning.MainActivity8',
+    'a12':'com.ijoysoft.browser.activity.ActivityMain0',
+    'a13':'com.stoutner.privacybrowser.activities.MainWebViewActivity0',
+    'a14':'de.baumann.browser.Activity.BrowserActivity0',
+    'a15':'org.mozilla.focus.activity.MainActivity0',
 
+    'a21':'com.rubenroy.minimaltodo.MainActivity0',
+    'a22': 'douzifly.list.ui.home.MainActivity0',
+    'a23':'org.secuso.privacyfriendlytodolist.view.MainActivity0',
+    'a24':'kdk.android.simplydo.SimplyDoActivity0',
+    'a25':'com.woefe.shoppinglist.activity.MainActivity0',
+
+    'a31':'com.contextlogic.wish.activity.login.LoginActivity0',
+    'a32':'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0',
+    'a33':'com.rainbowshops.activity.MainActivity0',
+    'a34':'',
+    'a35':'com.yelp.android.nearby.ui.ActivityNearby0',
+
+    'a41': 'com.fsck.k9.activity.MessageList0',
+    'a42': 'com.fsck.k9.activity.MessageList0',
+    'a43': 'ru.mail.mailapp.MailRuLoginActivity0',
+    'a44': 'ru.mail.mailapp.MailRuLoginActivity0',
+    'a45': 'ru.mail.mailapp.MailRuLoginActivity0',
+
+    'a51': 'anti.tip.tip0',
+    'a52': 'com.appsbyvir.tipcalculator.MainActivity0',
+    'a53': 'com.tleapps.simpletipcalculator.MainActivity0',
+    'a54': 'com.zaidisoft.teninone.Calculator0',
+    'a55': 'com.jpstudiosonline.tipcalculator.MainActivity0'
+}
 
 def exhaustive_search(SRC_ipts, TGT_ipts, ans, SRC, TGT):
     res = {}
@@ -100,7 +131,7 @@ def getInputEdges(STG):
 
 
 def get_input_from_STG(STG):
-    ipts = {}
+    ipts = OrderedDict()
     for s in STG:
         iptElem = []
         state = STG[s]
@@ -121,7 +152,6 @@ def get_input_from_STG(STG):
                         if e['type'] == 'input':
                             if e not in iptElem:
                                 iptElem.append(e)
-        if len(iptElem) > 0:
             ipts.update({key: iptElem})
     return ipts
 
@@ -189,18 +219,18 @@ def main():
     cate = '3'
     type = '1'
     folder = 'a' + cate + '_b' + cate + type
-    src = 'a' + cate + '5'
-    ref = 'a' + cate + '2'
+    src = 'a' + cate + '2'
+    tgt = 'a' + cate + '5'
 
     sdir = 'data/' + folder + '/tar/' + src + '/activitiesSummary.json'
-    tdir = 'data/' + folder + '/tar/' + ref + '/activitiesSummary.json'
+    tdir = 'data/' + folder + '/tar/' + tgt + '/activitiesSummary.json'
     test_json = 'data/' + folder + '/' + src + '.json'
-    ansjson = 'data/' + folder + '/' + ref + '.json'
+    ansjson = 'data/' + folder + '/' + tgt + '.json'
 
-    start_tgt = 'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0'
+    start_tgt = start_act[tgt]
     #start_tgt = 'com.yelp.android.nearby.ui.ActivityNearby0'
     sim_json = "data/a3_b31/sim_a35.json"
-    Init.initAll(sdir, tdir, test_json, sim_json, "a35_a31", start_tgt, 'a3_b31', src, ref)
+    Init.initAll(sdir, tdir, test_json, sim_json, "a35_a31", start_tgt, 'a3_b31', src, tgt)
 
     sg = parseJson2STG(sdir)
     tg = parseJson2STG(tdir)
@@ -217,20 +247,17 @@ def main():
     for tmp in tipt:
         find_binds(tmp, tg, tipt)
     ans = getAnswer(ansf)
-    res = exhaustive_search(sipt, tipt, ans, sg, tg)
-
+    ipt_res = exhaustive_search(sipt, tipt, ans, sg, tg)
+    ipt_res = sort(ipt_res)
     visited = []
     tgt_paths = []
-    SI_paths, IO_paths = STG_pruning(tg, res, start_tgt)
-    SI_path_src, IO_path_src = divide_STL(STL, res)
+    SI_paths, IO_paths = STG_pruning(tg, ipt_res, start_tgt)
+    SI_path_src, IO_path_src = divide_STL(STL, ipt_res)
     n=0
-    sstr = []
-    for i in SI_path_src:
-        if len(i.edges)>0:
-            sstr.append(i.edges[-1]['text']+'!'+i.edges[-1]['content-desc'])
-    print(sstr)
+    SI_res = {}
+    IO_res = {}
     for iop in SI_paths:
-        n+=1
+        ipt_key = iop[-1].toGraph
         if True:
             str = []
             for i in iop:
@@ -239,17 +266,19 @@ def main():
                     str.append(tmp[-1]['text']+"|"+tmp[-1]['content-desc'])
                 else:
                     str.append(tmp['text']+"|"+tmp['content-desc'])
-            print(str)
-            score, res = SeqMatcher.seq_match(SI_path_src, iop, STG, res)
-            print(score*SeqMatcher.jump_cost(len(iop), len(SI_path_src)-1))
-            print(res)
-    print('----------IO----------')
-    iostr = []
-    for i in IO_path_src:
-        if len(i.edges)>0:
-            iostr.append(i.edges[-1]['text']+'!'+i.edges[-1]['content-desc'])
-    print(iostr)
+            score, res = SeqMatcher.seq_match(SI_path_src, iop, STG, ipt_res)
+            score = score*SeqMatcher.jump_cost(len(iop), len(SI_path_src)-1)
+            if ipt_key not in SI_res:
+                SI_res.update({ipt_key:[score, res, iop]})
+            else:
+                if score >= SI_res[ipt_key][0]:
+                    if score == SI_res[ipt_key][0]:
+                        if len(res)> len(SI_res[ipt_key][1]):
+                            SI_res.update({ipt_key: [score, res, iop]})
+                    else:
+                        SI_res.update({ipt_key: [score, res, iop]})
     for iop in IO_paths:
+        ipt_key = iop[0].fromGraph
         n += 1
         if True:
             str = []
@@ -259,12 +288,37 @@ def main():
                     str.append(tmp[-1]['text'] + "|" + tmp[-1]['content-desc'])
                 else:
                     str.append(tmp['text'] + "|" + tmp['content-desc'])
-            print(str)
-            score, res = SeqMatcher.seq_match(IO_path_src, iop, STG, iptstates)
-            print(score * SeqMatcher.jump_cost(len(iop), len(IO_path_src) - 1))
-            print(res)
-            print(iop[res[-1]].toGraph)
-
+            score, res = SeqMatcher.seq_match(IO_path_src, iop, STG, ipt_res)
+            score = score * SeqMatcher.jump_cost(len(iop)-n_ipt_tgt, len(IO_path_src)-n_ipt_src)
+            if ipt_key not in IO_res:
+                IO_res.update({ipt_key:[score, res, iop]})
+            else:
+                if score >= IO_res[ipt_key][0]:
+                    if score == IO_res[ipt_key][0]:
+                        if len(res)> len(IO_res[ipt_key][1]):
+                            IO_res[ipt_key] = [score, res, iop]
+                    else:
+                        IO_res[ipt_key] = [score, res, iop]
+    max = 0
+    key_res = ''
+    print(SI_res)
+    for ikey in ipt_res:
+        si_key = ikey
+        io_key = ikey
+        if ikey in SI_res:
+            if len(ipt_res)>0:
+                for k in ipt_res:
+                    if k in IO_res:
+                        io_key = k
+                si_key = ikey
+                score_i = SI_res[si_key][0]+IO_res[io_key][0]
+                if score_i > max:
+                    max = score_i
+                    key_res = [si_key, io_key]
+    # print(SI_res[key_res], IO_res[key_res])
+    match_res = encode(SI_res, ipt_res, IO_res, key_res)
+    for r in match_res:
+        print(r)
 
     # for p in IO_paths:
     #     io_pairs = IO_paths[p]
@@ -281,7 +335,7 @@ def main():
     #     print('one path')
     #     for edge in path:
     #        print(edge.fromGraph, edge.toGraph, edge.target)
-
+    #
     # for r in res:
     #     tgt_ipt = r
     #     src_ipts = res[r]
@@ -297,6 +351,36 @@ def main():
     #                 for e in pr:
     #                     print(e.fromGraph, e.toGraph)
     #                 print('____________')
+
+
+def sort(ipts):
+    sorted_ipt = {}
+    for n in STG:
+        if n in ipts:
+            sorted_ipt.update({n:ipts[n]})
+    return sorted_ipt
+
+
+def encode(SI_res, ipt_res, IO_res, key):
+    res = []
+    for n in SI_res[key[0]][1]:
+        if n != -1:
+            evt = SI_res[key[0]][2][n].target[-1]
+            if isinstance(evt, list):
+                evt = evt[-1]
+            res.append(evt)
+    res.extend(ipt_res[key[0]])
+    print(key, 'ipt', ipt_res)
+    if key[0] != key[1]:
+        res.extend(ipt_res[key[1]])
+    for n in IO_res[key[1]][1]:
+        if n != -1:
+            evt = IO_res[key[1]][2][n].target[-1]
+            if isinstance(evt, list):
+                evt = evt[-1]
+            res.append(evt)
+    return res
+
 
 
 def STG_pruning(STG, ipt_matching_res, start_tgt):
@@ -341,6 +425,8 @@ def idxof(STL, act):
 def divide_STL(STL, res):
     SI_paths = {}
     IO_paths = {}
+    global n_ipt_tgt
+    global n_ipt_src
     ipt_states = []
     for k in res:
         ipts = res[k]
@@ -351,6 +437,8 @@ def divide_STL(STL, res):
     if idx != -1:
         SI_paths = STL[0:idx]
         IO_paths = STL[idx: len(STL)]
+    n_ipt_tgt = len(res)
+    n_ipt_src = len(ipt_states)
     return SI_paths, IO_paths
 
 
