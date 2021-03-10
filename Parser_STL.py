@@ -82,7 +82,7 @@ def test_to_STL(test, SRC):
             state = deepcopy(SRC[act])
             state.edges = [t]
             STL.append(state)
-        else:
+        else: # in case of oracle
             if not STL:
                 continue
             if t.__contains__('activity'):

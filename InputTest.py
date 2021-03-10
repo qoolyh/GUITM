@@ -301,7 +301,6 @@ def main():
                         IO_res[ipt_key] = [score, res, iop]
     max = 0
     key_res = ''
-    print(SI_res)
     for ikey in ipt_res:
         si_key = ikey
         io_key = ikey
@@ -370,7 +369,6 @@ def encode(SI_res, ipt_res, IO_res, key):
                 evt = evt[-1]
             res.append(evt)
     res.extend(ipt_res[key[0]])
-    print(key, 'ipt', ipt_res)
     if key[0] != key[1]:
         res.extend(ipt_res[key[1]])
     for n in IO_res[key[1]][1]:

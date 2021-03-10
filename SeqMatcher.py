@@ -88,9 +88,9 @@ class SeqMatcher:
                 if tmp_score > max:
                     max = tmp_score
                     res = tmp_res
+            res.append(len(tgt_STL) - 1)
         else:
             score, res = basicDP(src_STL, tgt_STL, -1, -1, func, 0, 0, True)
-        res.append(len(tgt_STL)-1)
         return score, res
 
     @staticmethod
