@@ -4,6 +4,7 @@ import math
 import re
 from collections import OrderedDict
 
+import numpy
 from numpy.core.defchararray import isnumeric
 
 import Init
@@ -244,6 +245,8 @@ def main():
     oracle_binding(STL)
     tipt = get_input_from_STG(tg)
     sipt = get_input(STL)
+    global MRES
+    MRES = numpy.zeros(len(STL))
     for tmp in tipt:
         find_binds(tmp, tg, tipt)
     ans = getAnswer(ansf)
@@ -253,6 +256,7 @@ def main():
     tgt_paths = []
     SI_paths, IO_paths = STG_pruning(tg, ipt_res, start_tgt)
     SI_path_src, IO_path_src = divide_STL(STL, ipt_res)
+
     n=0
     SI_res = {}
     IO_res = {}
@@ -315,7 +319,7 @@ def main():
                     max = score_i
                     key_res = [si_key, io_key]
     # print(SI_res[key_res], IO_res[key_res])
-    match_res = encode(SI_res, ipt_res, IO_res, key_res)
+    match_res = encode(SI_res, ipt_res, IO_res, key_res, SI_path_src, IO_path_src)
     for r in match_res:
         print(r)
 
@@ -360,8 +364,16 @@ def sort(ipts):
     return sorted_ipt
 
 
-def encode(SI_res, ipt_res, IO_res, key):
+def encode(SI_res, ipt_res, IO_res, key, SI_path_src, IO_path_src):
     res = []
+    for i in SI_path_src:
+        if SI_res[key[0]][1][i]!= -1:
+            if hasattr(SI_path_src[i],'oracle'):
+                o = SI_path_src[i].oracle
+                if same(o, SI_path_src[i].edges):
+                    moracle = MRES[o[idx]]
+                    moracle['action'] = o['action']
+
     for n in SI_res[key[0]][1]:
         if n != -1:
             evt = SI_res[key[0]][2][n].target[-1]
