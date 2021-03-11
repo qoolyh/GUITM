@@ -66,6 +66,9 @@ def exhaustive_search(SRC_ipts, TGT_ipts, ans, SRC, TGT):
                 if check(comp, ans[tgt]):
                     if tgt not in res:
                         res.update({tgt: comp})
+                        for i in range(len(comp)):
+                            idx = int(comp[i]['idx'])
+                            MRES[idx] = TGT_ipts[tgt][i]
                         look_forward += 1
                     if look_forward > 3:
                         break  # once you break, no more tgts will be matched
@@ -236,6 +239,7 @@ def main():
     sg = parseJson2STG(sdir)
     tg = parseJson2STG(tdir)
     file = open(test_json, "rb")
+    global test
     test = json.load(file)
 
     file2 = open(ansjson, "rb")
@@ -246,7 +250,7 @@ def main():
     tipt = get_input_from_STG(tg)
     sipt = get_input(STL)
     global MRES
-    MRES = numpy.zeros(len(STL))
+    MRES = initArray(len(test), -1)
     for tmp in tipt:
         find_binds(tmp, tg, tipt)
     ans = getAnswer(ansf)
@@ -320,7 +324,7 @@ def main():
                     key_res = [si_key, io_key]
     # print(SI_res[key_res], IO_res[key_res])
     match_res = encode(SI_res, ipt_res, IO_res, key_res, SI_path_src, IO_path_src)
-    for r in match_res:
+    for r in MRES:
         print(r)
 
     # for p in IO_paths:
@@ -356,6 +360,13 @@ def main():
     #                 print('____________')
 
 
+def initArray(l, v):
+    a = []
+    for i in range(l):
+        a.append(v)
+    return a
+
+
 def sort(ipts):
     sorted_ipt = {}
     for n in STG:
@@ -366,31 +377,63 @@ def sort(ipts):
 
 def encode(SI_res, ipt_res, IO_res, key, SI_path_src, IO_path_src):
     res = []
-    for i in SI_path_src:
+    for i in range(len(SI_path_src)):
         if SI_res[key[0]][1][i]!= -1:
-            if hasattr(SI_path_src[i],'oracle'):
-                o = SI_path_src[i].oracle
-                if same(o, SI_path_src[i].edges):
-                    moracle = MRES[o[idx]]
-                    moracle['action'] = o['action']
-
-    for n in SI_res[key[0]][1]:
-        if n != -1:
-            evt = SI_res[key[0]][2][n].target[-1]
+            idx = SI_path_src[i].edges[-1]['idx']
+            MRES[idx] = SI_res[key[0]][2][i].target[-1]
+    for i in range(len(IO_path_src)-1):
+        if IO_res[key[1]][1][i] != -1:
+            idx = IO_path_src[i].edges[-1]['idx']
+            evt = IO_res[key[1]][2][i].target[-1]
             if isinstance(evt, list):
                 evt = evt[-1]
-            res.append(evt)
-    res.extend(ipt_res[key[0]])
-    if key[0] != key[1]:
-        res.extend(ipt_res[key[1]])
-    for n in IO_res[key[1]][1]:
-        if n != -1:
-            evt = IO_res[key[1]][2][n].target[-1]
-            if isinstance(evt, list):
-                evt = evt[-1]
-            res.append(evt)
+            MRES[idx] = evt
+    for i in range(len(MRES)):
+        if test[i]['event_type'] == 'oracle': # case1, disappear
+            target = test[i]
+            match = {}
+            if 'trace_back' in test[i]:
+                target = test[i]['trace_back']
+            else:
+                flag = False
+                for j in range(i+1,len(MRES)):
+                    if same(test[j], target):
+                        match = MRES[j]
+                        match['action'] = test[i]['action']
+                        flag = True
+                        break
+                if not flag:
+                    if i == len(MRES)-1:
+                        bindings = STG[key[1]].binding
+                        for bd in bindings:
+                            if bd == IO_res[key[1]][2][-1].fromGraph:
+                                match['action'] = target['action']
+                                match['activity'] = bd
+                    else:
+                        match = target
+            MRES[i] = match
+    # for n in SI_res[key[0]][1]:
+    #     if n != -1:
+    #         evt = SI_res[key[0]][2][n].target[-1]
+    #         if isinstance(evt, list):
+    #             evt = evt[-1]
+    #         res.append(evt)
+    # res.extend(ipt_res[key[0]])
+    # if key[0] != key[1]:
+    #     res.extend(ipt_res[key[1]])
+    # for n in IO_res[key[1]][1]:
+    #     if n != -1:
+    #         evt = IO_res[key[1]][2][n].target[-1]
+    #         if isinstance(evt, list):
+    #             evt = evt[-1]
+    #         res.append(evt)
     return res
 
+
+def same(e1, e2):
+    idf1 = e1['resource-id'] + ' ' + e1['content-desc']
+    idf2 = e2['resource-id'] + ' ' + e2['content-desc']
+    return idf1 == idf2
 
 
 def STG_pruning(STG, ipt_matching_res, start_tgt):

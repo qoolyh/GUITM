@@ -67,6 +67,8 @@ def test_to_STL(test, SRC):
         state = deepcopy(SRC[act])
         t['isInput'] = ('send_keys' in t['action'][0])
         if t['event_type'] == 'oracle':
+            t['isElem'] = 'element' in t['action'][0]
+            t['isTxt'] = 'text' in t['action'][0]
             if act in acts:
                 i = acts['act'][-1]
                 t['disappear'] = 'invisible' in t['action'][0]
