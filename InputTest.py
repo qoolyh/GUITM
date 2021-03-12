@@ -322,7 +322,6 @@ def main():
                 if score_i > max:
                     max = score_i
                     key_res = [si_key, io_key]
-    # print(SI_res[key_res], IO_res[key_res])
     match_res = encode(SI_res, ipt_res, IO_res, key_res, SI_path_src, IO_path_src)
     for r in MRES:
         print(r)
@@ -380,11 +379,15 @@ def encode(SI_res, ipt_res, IO_res, key, SI_path_src, IO_path_src):
     for i in range(len(SI_path_src)):
         if SI_res[key[0]][1][i]!= -1:
             idx = SI_path_src[i].edges[-1]['idx']
-            MRES[idx] = SI_res[key[0]][2][i].target[-1]
+            pidx = SI_res[key[0]][1][i]
+            paths = SI_res[key[0]][2]
+            MRES[idx] =paths[pidx].target[-1]
     for i in range(len(IO_path_src)-1):
         if IO_res[key[1]][1][i] != -1:
             idx = IO_path_src[i].edges[-1]['idx']
-            evt = IO_res[key[1]][2][i].target[-1]
+            pidx = IO_res[key[1]][1][i]
+            paths = IO_res[key[1]][2]
+            evt = paths[pidx].target[-1]
             if isinstance(evt, list):
                 evt = evt[-1]
             MRES[idx] = evt
@@ -398,19 +401,20 @@ def encode(SI_res, ipt_res, IO_res, key, SI_path_src, IO_path_src):
                 flag = False
                 for j in range(i+1,len(MRES)):
                     if same(test[j], target):
-                        match = MRES[j]
-                        match['action'] = test[i]['action']
-                        flag = True
-                        break
+                        match = copy.deepcopy(MRES[j])
+                        if match != -1:  # the oracle's target is matched
+                            match['action'] = test[i]['action']
+                            flag = True
+                            break
                 if not flag:
                     if i == len(MRES)-1:
                         bindings = STG[key[1]].binding
                         for bd in bindings:
-                            if bd == IO_res[key[1]][2][-1].fromGraph:
+                            if bd == IO_res[key[1]][2][-1].toGraph:
                                 match['action'] = target['action']
                                 match['activity'] = bd
                     else:
-                        match = target
+                        match = -1
             MRES[i] = match
     # for n in SI_res[key[0]][1]:
     #     if n != -1:

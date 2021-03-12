@@ -39,7 +39,7 @@ def basicDP(list1, list2, start1, start2, func, prev1, prev2, init=False):
                     record = record_i
                 continue
             if i == len(list1)-1:
-                return SeqMatcher.jump_cost(i - prev1, j - prev2), []
+                return SeqMatcher.jump_cost(i - prev1, j - prev2), [j]
             v = func(list1[i], list2[j]) * SeqMatcher.jump_cost(i - prev1, j - prev2)
             # v = func(list1[i], list2[j])
             left, left_rec = basicDP(list1, list2, i, j, func, i, j)  # i matched to j, so prev1 =i, prev2 = j
@@ -88,7 +88,7 @@ class SeqMatcher:
                 if tmp_score > max:
                     max = tmp_score
                     res = tmp_res
-            res.append(len(tgt_STL) - 1)
+            # res.append(len(tgt_STL) - 1)
         else:
             score, res = basicDP(src_STL, tgt_STL, -1, -1, func, 0, 0, True)
         return score, res
