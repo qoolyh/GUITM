@@ -7,6 +7,7 @@ from collections import OrderedDict
 import numpy
 from numpy.core.defchararray import isnumeric
 
+from Edge import Edge
 import Init
 from SeqMatcher import SeqMatcher
 import Util
@@ -19,29 +20,29 @@ from simCal import single_elem_sim
 
 ANS = {}
 start_act = {
-    'a11':'acr.browser.lightning.MainActivity8',
-    'a12':'com.ijoysoft.browser.activity.ActivityMain0',
-    'a13':'com.stoutner.privacybrowser.activities.MainWebViewActivity0',
-    'a14':'de.baumann.browser.Activity.BrowserActivity0',
-    'a15':'org.mozilla.focus.activity.MainActivity0',
+    'a11': 'acr.browser.lightning.MainActivity8',
+    'a12': 'com.ijoysoft.browser.activity.ActivityMain0',
+    'a13': 'com.stoutner.privacybrowser.activities.MainWebViewActivity0',
+    'a14': 'de.baumann.browser.Activity.BrowserActivity0',
+    'a15': 'org.mozilla.focus.activity.MainActivity0',
 
-    'a21':'com.rubenroy.minimaltodo.MainActivity0',
+    'a21': 'com.rubenroy.minimaltodo.MainActivity0',
     'a22': 'douzifly.list.ui.home.MainActivity0',
-    'a23':'org.secuso.privacyfriendlytodolist.view.MainActivity0',
-    'a24':'kdk.android.simplydo.SimplyDoActivity0',
-    'a25':'com.woefe.shoppinglist.activity.MainActivity0',
+    'a23': 'org.secuso.privacyfriendlytodolist.view.MainActivity0',
+    'a24': 'kdk.android.simplydo.SimplyDoActivity0',
+    'a25': 'com.woefe.shoppinglist.activity.MainActivity0',
 
-    'a31':'com.contextlogic.wish.activity.login.LoginActivity0',
-    'a32':'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0',
-    'a33':'com.rainbowshops.activity.MainActivity0',
-    'a34':'',
-    'a35':'com.yelp.android.nearby.ui.ActivityNearby0',
+    'a31': 'com.contextlogic.wish.activity.login.LoginActivity0',
+    'a32': 'com.contextlogic.wish.activity.login.createaccount.CreateAccountActivity0',
+    'a33': 'com.rainbowshops.activity.ProfileActivity0',
+    'a34': '',
+    'a35': 'com.yelp.android.nearby.ui.ActivityNearby0',
 
     'a41': 'com.fsck.k9.activity.MessageList0',
     'a42': 'com.fsck.k9.activity.MessageList0',
     'a43': 'ru.mail.mailapp.MailRuLoginActivity0',
     'a44': 'ru.mail.mailapp.MailRuLoginActivity0',
-    'a45': 'ru.mail.mailapp.MailRuLoginActivity0',
+    'a45': 'ru.mail.ui.SlideStackActivity0',
 
     'a51': 'anti.tip.tip0',
     'a52': 'com.appsbyvir.tipcalculator.MainActivity0',
@@ -49,6 +50,7 @@ start_act = {
     'a54': 'com.zaidisoft.teninone.Calculator0',
     'a55': 'com.jpstudiosonline.tipcalculator.MainActivity0'
 }
+
 
 def exhaustive_search(SRC_ipts, TGT_ipts, ans, SRC, TGT):
     res = {}
@@ -112,7 +114,8 @@ def getInputEdges(STG):
         key = s
         path = state.edges
         egs = []
-        for edges in path:
+        for i in range(len(path)):
+            edges = path[i]
             tmp = []
             elements = edges.target
             if len(elements) > 1:
@@ -122,6 +125,12 @@ def getInputEdges(STG):
                         for k in e:
                             if k['type'] == 'input':
                                 tmp_e.append(k)
+                            elif k['type'] == 'inputEnter':
+                                tmp_e.append(k)
+                                # enter = copy.deepcopy(k)
+                                # enter['type'] = 'click'
+                                # enter['target'] = 'Enter'
+                                # STG[s].edges[i].append()
                         if len(tmp_e) > 1:
                             egs.append(tmp_e)
                     else:
@@ -144,18 +153,19 @@ def get_input_from_STG(STG):
         egs = []
         for edges in path:
             elements = edges.target
-            if len(elements) > 1:
-                for e in elements:
-                    if isinstance(e, list):
+            for e in elements:
+                if isinstance(e, list):
+                    if len(e) >= 1:
                         tmp_e = []
                         for k in e:
-                            if k['type'] == 'input':
+                            if k['type'] == 'input' or k['type'] == 'inputEnter':
                                 if k not in iptElem:
                                     iptElem.append(k)
-                    else:
-                        if e['type'] == 'input':
-                            if e not in iptElem:
-                                iptElem.append(e)
+                # else:
+                #     if e['type'] == 'input':
+                #         if e not in iptElem:
+                #             iptElem.append(e)
+        if len(iptElem)>0:
             ipts.update({key: iptElem})
     return ipts
 
@@ -220,11 +230,11 @@ def rank(ipts, target):
 def main():
     global STG
     global STL
-    cate = '3'
+    cate = '2'
     type = '1'
     folder = 'a' + cate + '_b' + cate + type
-    src = 'a' + cate + '2'
-    tgt = 'a' + cate + '5'
+    src = 'a' + cate + '3'
+    tgt = 'a' + cate + '1'
 
     sdir = 'data/' + folder + '/tar/' + src + '/activitiesSummary.json'
     tdir = 'data/' + folder + '/tar/' + tgt + '/activitiesSummary.json'
@@ -232,9 +242,9 @@ def main():
     ansjson = 'data/' + folder + '/' + tgt + '.json'
 
     start_tgt = start_act[tgt]
-    #start_tgt = 'com.yelp.android.nearby.ui.ActivityNearby0'
+    # start_tgt = 'com.yelp.android.nearby.ui.ActivityNearby0'
     sim_json = "data/a3_b31/sim_a35.json"
-    Init.initAll(sdir, tdir, test_json, sim_json, "a35_a31", start_tgt, 'a3_b31', src, tgt)
+    Init.initAll(sdir, tdir, test_json, sim_json, "a35_a31", start_tgt, folder, src, tgt)
 
     sg = parseJson2STG(sdir)
     tg = parseJson2STG(tdir)
@@ -261,64 +271,77 @@ def main():
     SI_paths, IO_paths = STG_pruning(tg, ipt_res, start_tgt)
     SI_path_src, IO_path_src = divide_STL(STL, ipt_res)
 
-    n=0
+    n = 0
     SI_res = {}
     IO_res = {}
+    if len(SI_paths) == 0:
+        # this means the input is in the initial state
+        if len(ipt_res)>0:
+            for ipt_key in ipt_res:
+                SI_res.update({ipt_key:[0,[],[]]})
+
     for iop in SI_paths:
         ipt_key = iop[-1].toGraph
         if True:
-            str = []
-            for i in iop:
-                tmp = i.target[-1]
-                if isinstance(tmp, list):
-                    str.append(tmp[-1]['text']+"|"+tmp[-1]['content-desc'])
-                else:
-                    str.append(tmp['text']+"|"+tmp['content-desc'])
             score, res = SeqMatcher.seq_match(SI_path_src, iop, STG, ipt_res)
-            score = score*SeqMatcher.jump_cost(len(iop), len(SI_path_src)-1)
+            score = score * SeqMatcher.jump_cost(len(iop), len(SI_path_src) - 1)
             if ipt_key not in SI_res:
-                SI_res.update({ipt_key:[score, res, iop]})
+                SI_res.update({ipt_key: [score, res, iop]})
             else:
                 if score >= SI_res[ipt_key][0]:
                     if score == SI_res[ipt_key][0]:
-                        if len(res)> len(SI_res[ipt_key][1]):
+                        if len(res) > len(SI_res[ipt_key][1]):
                             SI_res.update({ipt_key: [score, res, iop]})
                     else:
                         SI_res.update({ipt_key: [score, res, iop]})
+    if len(IO_paths) == 0:
+        jump = len(IO_path_src) - 1
+        oracle = STL[-1].oracle
+        dest = []
+        visited = []
+        for ipt_key in SI_res:
+            ipt_tgt_state = tg[ipt_key]
+            states = dfs(ipt_tgt_state, tg, jump + 2)
+            for s in states:
+                if s not in visited:
+                    visited.append(s)
+                    if Util.hasElem(oracle, tg[s]):
+                        if hasattr(STG[ipt_key], 'binding'):
+                            STG[ipt_key].binding.append(s)
+                        else:
+                            STG[ipt_key].binding = [s]
+                        path = Util.getPath(ipt_key, s, [], False)[1]
+                        for edgelist in path:
+                            if len(edgelist)<jump+2:
+                                IO_paths.append(edgelist)
+
     for iop in IO_paths:
         ipt_key = iop[0].fromGraph
         n += 1
-        if True:
-            str = []
-            for i in iop:
-                tmp = i.target[-1]
-                if isinstance(tmp, list):
-                    str.append(tmp[-1]['text'] + "|" + tmp[-1]['content-desc'])
-                else:
-                    str.append(tmp['text'] + "|" + tmp['content-desc'])
-            score, res = SeqMatcher.seq_match(IO_path_src, iop, STG, ipt_res)
-            score = score * SeqMatcher.jump_cost(len(iop)-n_ipt_tgt, len(IO_path_src)-n_ipt_src)
-            if ipt_key not in IO_res:
-                IO_res.update({ipt_key:[score, res, iop]})
-            else:
-                if score >= IO_res[ipt_key][0]:
-                    if score == IO_res[ipt_key][0]:
-                        if len(res)> len(IO_res[ipt_key][1]):
-                            IO_res[ipt_key] = [score, res, iop]
-                    else:
+        score, res = SeqMatcher.seq_match(IO_path_src, iop, STG, ipt_res)
+        score = score * SeqMatcher.jump_cost(len(iop) - n_ipt_tgt, len(IO_path_src) - n_ipt_src)
+        if ipt_key not in IO_res:
+            IO_res.update({ipt_key: [score, res, iop]})
+        else:
+            if score >= IO_res[ipt_key][0]:
+                if score == IO_res[ipt_key][0]:
+                    if len(res) > len(IO_res[ipt_key][1]):
                         IO_res[ipt_key] = [score, res, iop]
+                else:
+                    IO_res[ipt_key] = [score, res, iop]
+
     max = 0
     key_res = ''
     for ikey in ipt_res:
         si_key = ikey
         io_key = ikey
         if ikey in SI_res:
-            if len(ipt_res)>0:
+            if len(ipt_res) > 0:
                 for k in ipt_res:
                     if k in IO_res:
                         io_key = k
                 si_key = ikey
-                score_i = SI_res[si_key][0]+IO_res[io_key][0]
+                score_i = SI_res[si_key][0] + IO_res[io_key][0]
                 if score_i > max:
                     max = score_i
                     key_res = [si_key, io_key]
@@ -326,37 +349,37 @@ def main():
     for r in MRES:
         print(r)
 
-    # for p in IO_paths:
-    #     io_pairs = IO_paths[p]
-    #     print('_____________', p)
-    #     i = 1
-    #     for desitination_paths in io_pairs:
-    #         print('path____', i)
-    #         i += 1
-    #         for destination in desitination_paths:
-    #             v = simCal.o_sim(STL[-1], tg[destination])
-    #             print(v)
-    # paths = desitination_paths[destination]
-    # for path in paths:
-    #     print('one path')
-    #     for edge in path:
-    #        print(edge.fromGraph, edge.toGraph, edge.target)
-    #
-    # for r in res:
-    #     tgt_ipt = r
-    #     src_ipts = res[r]
-    #     print(tgt_ipt, src_ipts)
-    #     paths_r = Util.getPath(start_tgt, r, visited)
-    #     print('from ',start_tgt, ' to', r)
-    #     if hasattr(tg[r], 'binding'):
-    #         r_binding = tg[r].binding
-    #         for k in r_binding:
-    #             paths_2 = Util.getPath(r, k, [])
-    #             print('__from ', r, ' to', k)
-    #             for pr in paths_2[1]:
-    #                 for e in pr:
-    #                     print(e.fromGraph, e.toGraph)
-    #                 print('____________')
+# for p in IO_paths:
+#     io_pairs = IO_paths[p]
+#     print('_____________', p)
+#     i = 1
+#     for desitination_paths in io_pairs:
+#         print('path____', i)
+#         i += 1
+#         for destination in desitination_paths:
+#             v = simCal.o_sim(STL[-1], tg[destination])
+#             print(v)
+# paths = desitination_paths[destination]
+# for path in paths:
+#     print('one path')
+#     for edge in path:
+#        print(edge.fromGraph, edge.toGraph, edge.target)
+#
+# for r in res:
+#     tgt_ipt = r
+#     src_ipts = res[r]
+#     print(tgt_ipt, src_ipts)
+#     paths_r = Util.getPath(start_tgt, r, visited)
+#     print('from ',start_tgt, ' to', r)
+#     if hasattr(tg[r], 'binding'):
+#         r_binding = tg[r].binding
+#         for k in r_binding:
+#             paths_2 = Util.getPath(r, k, [])
+#             print('__from ', r, ' to', k)
+#             for pr in paths_2[1]:
+#                 for e in pr:
+#                     print(e.fromGraph, e.toGraph)
+#                 print('____________')
 
 
 def initArray(l, v):
@@ -370,19 +393,19 @@ def sort(ipts):
     sorted_ipt = {}
     for n in STG:
         if n in ipts:
-            sorted_ipt.update({n:ipts[n]})
+            sorted_ipt.update({n: ipts[n]})
     return sorted_ipt
 
 
 def encode(SI_res, ipt_res, IO_res, key, SI_path_src, IO_path_src):
     res = []
     for i in range(len(SI_path_src)):
-        if SI_res[key[0]][1][i]!= -1:
+        if SI_res[key[0]][1][i] != -1:
             idx = SI_path_src[i].edges[-1]['idx']
             pidx = SI_res[key[0]][1][i]
             paths = SI_res[key[0]][2]
-            MRES[idx] =paths[pidx].target[-1]
-    for i in range(len(IO_path_src)-1):
+            MRES[idx] = paths[pidx].target[-1]
+    for i in range(len(IO_path_src) - 1):
         if IO_res[key[1]][1][i] != -1:
             idx = IO_path_src[i].edges[-1]['idx']
             pidx = IO_res[key[1]][1][i]
@@ -390,16 +413,17 @@ def encode(SI_res, ipt_res, IO_res, key, SI_path_src, IO_path_src):
             evt = paths[pidx].target[-1]
             if isinstance(evt, list):
                 evt = evt[-1]
-            MRES[idx] = evt
+            if evt['type'] != 'input' and 'send_keys' not in test[idx]['action'][0]:
+                MRES[idx] = evt
     for i in range(len(MRES)):
-        if test[i]['event_type'] == 'oracle': # case1, disappear
+        if test[i]['event_type'] == 'oracle':  # case1, disappear
             target = test[i]
             match = {}
             if 'trace_back' in test[i]:
                 target = test[i]['trace_back']
             else:
                 flag = False
-                for j in range(i+1,len(MRES)):
+                for j in range(i + 1, len(MRES)):
                     if same(test[j], target):
                         match = copy.deepcopy(MRES[j])
                         if match != -1:  # the oracle's target is matched
@@ -407,7 +431,7 @@ def encode(SI_res, ipt_res, IO_res, key, SI_path_src, IO_path_src):
                             flag = True
                             break
                 if not flag:
-                    if i == len(MRES)-1:
+                    if i == len(MRES) - 1:
                         bindings = STG[key[1]].binding
                         for bd in bindings:
                             if bd == IO_res[key[1]][2][-1].toGraph:
@@ -441,6 +465,7 @@ def same(e1, e2):
 
 
 def STG_pruning(STG, ipt_matching_res, start_tgt):
+    # format description: IO_paths_list = [act]
     SI_paths = []  # getting paths from start to correct_inputting states
     IO_paths_list = []
     IO_paths = {}
@@ -453,7 +478,10 @@ def STG_pruning(STG, ipt_matching_res, start_tgt):
         if hasattr(STG[r], 'binding'):
             r_bindings = STG[r].binding  # one input may bind to multiple displays
             for k in r_bindings:
+                elem = r_bindings[k][0]
                 io_paths_k = Util.getPath(r, k, [])
+                e = Edge(elem, 'empty_evt', k, k)
+                # io_paths_k[1].append([e)
                 if IO_paths.__contains__(r):
                     IO_paths[r].append(io_paths_k[1])
                 else:
@@ -499,235 +527,88 @@ def divide_STL(STL, res):
     return SI_paths, IO_paths
 
 
-def matching(src_path, tgt_paths, SI=False):
-    for tgt_path in tgt_paths:
-        path_match(src_path, tgt_path, SI, )
-
-
-def test_path(path_src, paths_tgt, SI_paths, prev_src_e):
-    prev_tgt_evts = []
-    forSI = False
-    prev_tgt = -1
-
-    for path_tgt in paths_tgt:
-        start = path_tgt[0].fromGraph
-        for sip in SI_paths:
-            if sip[-1].toGraph == start:
-                prev_tgt_evts = sip[-1]
-                score, path, events = path_match(path_src, path_tgt, forSI, -1, prev_tgt, True, prev_src_e,
-                                                 prev_tgt_evts)
-                print(score)
-                for e in path:
-                    print(e.fromGraph, e.toGraph, e.target)
-                print('evts', events)
-
-
-def path_match(path_src, path_tgt, forSI, prev_src, prev_tgt, begining, prev_src_e=[], prev_events_tgt=[]):
-    max = 0
-    path = []
-    events = []
-    prev_evt_src = ''
-    if len(path_src) == prev_src + 1:
-        return max, path, events
-    if len(path_tgt) == prev_tgt + 1:
-        for i in range(len(path_src)):
-            events.append('none')
-        return max, path, events
-    if not begining:
-        prev_evt_src = path_src[prev_src].edges[-1]
-    if not forSI and begining:
-        prev_evt_src = prev_src_e
-    # if prev_src == len(path_src)-2 or prev_tgt == len(path_tgt)-2:
-    #     jump_src = len(path_src) - prev_src -1
-    #     jump_tgt = len(path_tgt) - prev_tgt -1
-    #     max = math.log(abs(jump_tgt - jump_src) + 1, 2) + 1
-
-    for idx in range(prev_tgt + 1, len(path_tgt)):
-        first_t = ''
-        edge = path_tgt[idx]
-        if isinstance(edge, list):
-            first_t = edge[-1].fromGraph
-        else:
-            first_t = edge.fromGraph
-        event_sim = 0
-        matched_path = []
-        matched_event = []
-        if not begining:
-            prefixes = path_tgt[prev_tgt:idx]
-            print(prev_evt_src)
-            event_sim, matched_path, matched_event = find_best_event(prefixes, prev_evt_src)
-        elif not forSI:
-            if idx == 0:  # IO beginning
-                seq_sim, matched_seq, matched_events = path_match(path_src, path_tgt, forSI, prev_src + 1, idx, False)
-                sim_t = seq_sim
-                path_t = matched_seq
-                events_t = matched_events
-                return sim_t, path_t, events_t
-            else:
-                break
-        graph_sim = simCal.gSim_baseline(STL[0].elements, STG[first_t].elements)
-        oracle_sim, matched_oracle = simCal.o_sim(STL[0], STG[first_t])
-        if matched_oracle == '':
-            oracle_sim = 0
-        seq_sim, matched_seq, matched_events = path_match(path_src, path_tgt, forSI, prev_src + 1, idx, False)
-        sim_t = event_sim + graph_sim + oracle_sim + seq_sim
-        path_t = copy.deepcopy(matched_path)
-        path_t.extend(matched_seq)
-        events_t = copy.deepcopy(matched_event)
-        events_t.extend(matched_events)
-        if sim_t > max:
-            max = sim_t
-            path = path_t
-            events = events_t
-    return max, path, events
-    # else:
-    #     max = 0
-    #     path = {}
-    #     prev_evt_src = STL[prev_src].edges[-1]
-    #     for first_t in path_tgt:
-    #         connect, prefixes = Util.getPath(prev_tgt, path_tgt[first_t], [], True)
-    #         event_sim, matched_path, matched_event = find_best_event(prefixes, prev_evt_src)
-    #         graph_sim = simCal.gSim_baseline(STL[0], STG[first_t])
-    #         oracle_sim = simCal.o_sim(STL[0], STG[first_t])
-    #         seq_tgt = subSeq(path_tgt, first_t)
-    #         seq_src = subSeq(path_src, list(path_src)[0])
-    #         seq_sim, matched_seq, matched_events = path_match(seq_src, seq_tgt, forSI, list(path_src)[0], first_t, STL, STG)
-    #
-    #         seq_sim, matched_seq, matched_events = seq_matcher(path_src, seq_tgt)
-
-
-def pmatch(path_src, path_tgt, forSI, prev_src, prev_tgt, begining, prev_src_e=[], prev_events_tgt=[]):
-    max = 0
-    path = []
-    events = []
-    prev_evt_src = ''
-    if len(path_src) == prev_src + 1:
-        return max, path, events
-    if len(path_tgt) == prev_tgt + 1:
-        for i in range(len(path_src)):
-            events.append('none')
-        return max, path, events
-    for k in range(prev_src + 1, len(path_src)):
-        for l in range(prev_tgt, len(path_tgt)):
-            sim_kl, path_kl, events_kl = sim(path_src[prev_src, k], path_tgt[prev_tgt, l], begining)
-            nextSim, path_next, events_next = pmatch(path_src, path_tgt, forSI, k, l, False)
-            if sim_kl + next > max:
-                max = sim_kl + next
-                path = path_kl
-                events = events_kl
-                path.extend(path_next)
-                events.extend(events_next)
-    return max, path, events
-
-
-def sim(subp_src, subp_tgt, beginning):
-    max = 0
-    path = []
-    events = []
-
-    evt_src = to_events(subp_src, True)
-    evt_tgt = to_events(subp_tgt)
-    score, record = basicDP(evt_src, evt_tgt, -1, -1, single_elem_sim)
-    if beginning:
-        a = 1
-    return max, path, events
-
-
-def to_events(path, forSrc=False):
-    evts = []
-    for g in path:
-        if forSrc:
-            evts.append(g.edges[-1])
-        else:
-            target = g.target
-            if isinstance(target, list):
-                target = target[-1]
-            if isinstance(target, list):
-                target = target[-1]
-            evts.append(target)
-    return evts
-
-
-DP_res = {}
-
-
-def basicDP(list1, list2, start1, start2, func, init=False):
-    if init:
-        DP_res.clear()
-    max = 0
-    record = []
-    i = start1 + 1
-    rec_i = []
-    score_i = 0
-    match_i = -1
-    if i <len(list1):
-        for j in range(start2 + 1, len(list2)):
-            key = str(i)+'_'+str(j)
-            if key in DP_res:
-                max_i, record_i = DP_res[key]
-                if max< max_i:
-                    max = max_i
-                    record = record_i
-                continue
-            v = func(list1[i], list2[j])
-            left, left_rec = basicDP(list1, list2, i, j, func)
-            left_ban, left_rec_ban = basicDP(list1, list2, i, start2, func)
-            left_kpt, left_rec_kpt = basicDP(list1, list2, start1, j, func)
-            if max <= v+left:
-                max = v+left
-                record = [j]+left_rec
-            if max <= left_kpt:
-                max = left_kpt
-                record = left_rec_kpt
-            if max <= left_ban:
-                max = left_ban
-                record = [-1]+left_rec_ban
-            DP_res.update({key:[max, record]})
-    return max, record
-
-
-def find_best_event(path, src_evt):
-    best_path = []
-    matched_event = []
-    max_score = -1
-    if isinstance(path, list):
-        for edge in path:
-            jump = len(path)
-            jump_cost = math.log(abs(jump - 1) + 1, 2) + 1
-            event = edge.target
-            if isinstance(event, list):
-                event = event[-1]
-            if isinstance(event, list):
-                event = event[-1]
-            esim_curr = simCal.single_elem_sim(src_evt, event) / jump_cost
-            if esim_curr > max_score:
-                max_score = esim_curr
-                matched_event = [event]
-                best_path = path
-    else:
-        edge = path
-        jump = 1
-        jump_cost = math.log(abs(jump - 1) + 1, 2) + 1
-        event = edge.target
-        if isinstance(event, list):
-            event = event[-1]
-        esim_curr = simCal.single_elem_sim(src_evt, event) / jump_cost
-        if esim_curr > max_score:
-            max_score = esim_curr
-            matched_event = [event]
-            best_path = [path]
-    return max_score, best_path, matched_event
-
-
-def subSeq(seq, start):
-    res = {}
-    find = False
-    for key in seq:
-        if key == start:
-            find = True
-            if find:
-                res.update({key: seq[key]})
-    return res
+#
+#
+# DP_res = {}
+#
+#
+# def basicDP(list1, list2, start1, start2, func, init=False):
+#     if init:
+#         DP_res.clear()
+#     max = 0
+#     record = []
+#     i = start1 + 1
+#     rec_i = []
+#     score_i = 0
+#     match_i = -1
+#     if i <len(list1):
+#         for j in range(start2 + 1, len(list2)):
+#             key = str(i)+'_'+str(j)
+#             if key in DP_res:
+#                 max_i, record_i = DP_res[key]
+#                 if max< max_i:
+#                     max = max_i
+#                     record = record_i
+#                 continue
+#             v = func(list1[i], list2[j])
+#             left, left_rec = basicDP(list1, list2, i, j, func)
+#             left_ban, left_rec_ban = basicDP(list1, list2, i, start2, func)
+#             left_kpt, left_rec_kpt = basicDP(list1, list2, start1, j, func)
+#             if max <= v+left:
+#                 max = v+left
+#                 record = [j]+left_rec
+#             if max <= left_kpt:
+#                 max = left_kpt
+#                 record = left_rec_kpt
+#             if max <= left_ban:
+#                 max = left_ban
+#                 record = [-1]+left_rec_ban
+#             DP_res.update({key:[max, record]})
+#     return max, record
+#
+#
+# def find_best_event(path, src_evt):
+#     best_path = []
+#     matched_event = []
+#     max_score = -1
+#     if isinstance(path, list):
+#         for edge in path:
+#             jump = len(path)
+#             jump_cost = math.log(abs(jump - 1) + 1, 2) + 1
+#             event = edge.target
+#             if isinstance(event, list):
+#                 event = event[-1]
+#             if isinstance(event, list):
+#                 event = event[-1]
+#             esim_curr = simCal.single_elem_sim(src_evt, event) / jump_cost
+#             if esim_curr > max_score:
+#                 max_score = esim_curr
+#                 matched_event = [event]
+#                 best_path = path
+#     else:
+#         edge = path
+#         jump = 1
+#         jump_cost = math.log(abs(jump - 1) + 1, 2) + 1
+#         event = edge.target
+#         if isinstance(event, list):
+#             event = event[-1]
+#         esim_curr = simCal.single_elem_sim(src_evt, event) / jump_cost
+#         if esim_curr > max_score:
+#             max_score = esim_curr
+#             matched_event = [event]
+#             best_path = [path]
+#     return max_score, best_path, matched_event
+#
+#
+# def subSeq(seq, start):
+#     res = {}
+#     find = False
+#     for key in seq:
+#         if key == start:
+#             find = True
+#             if find:
+#                 res.update({key: seq[key]})
+#     return res
 
 
 def oracle_binding(STL):
@@ -763,7 +644,12 @@ def oracle_binding(STL):
 def find_binds(sid, STG, ipts):
     lamda = 3
     accessble_states = dfs(STG[sid], STG, lamda)
+    visited = []
     for accs in accessble_states:
+        if accs not in visited:
+            visited.append(accs)
+        else:
+            continue
         txts = ipts[sid]
         for t in txts:
             res = contain_str(t['inputText'], STG[accs])
@@ -782,9 +668,9 @@ def contain_str(st, state):
     res = []
     elems = state.elements
     for e in elems:
-        if isNum(st):
-            if isNum(e.text):
-                res.append(e)
+        # if isNum(st):
+        #     if isNum(e.text):
+        #         res.append(e)
         if similar_substr(st, e.text):
             res.append(e)
     return res
@@ -840,6 +726,7 @@ def moreThanOneIpt(STL):
                 prev = i
         else:
             prev = i
+
 
 main()
 

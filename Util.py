@@ -71,6 +71,17 @@ def find_out(element, state):
         return False
 
 
+def hasElem(oracle, state):
+    exist = False
+    for e in state.elements:
+        otxt = oracle['text'].split(' ')
+        for ot in otxt:
+            if ot in e.text:
+                exist = True
+                break
+    return exist
+
+
 def get_edge(from_graph_id, to_graph_id, mute_ipt= False):
     edge = []
     TGT_G = Gol.get_value('TGT_G')  # graph info of target app

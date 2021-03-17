@@ -18,7 +18,7 @@ def w2v_sim(w_from, w_to):
 
 def is_reg_words(words):
     tmp = ''.join(str(i).lower()+' ' for i in words)
-    registerwords = ['join', 'register', 'sign up', 'create account']
+    registerwords = ['join', 'register', 'sign up', 'create account', 'log in']
     for w in registerwords:
         if w in tmp:
             return True

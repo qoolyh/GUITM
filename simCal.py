@@ -27,12 +27,48 @@ def w2v_sim(w_from, w_to):
     return sim
 
 
+# def arraySim(strArray, strArray2):
+#     scores = []
+#     # valid_new_words = []
+#     # valid_old_words = copy.deepcopy(strArray2)
+#     valid_new_words = set()
+#     valid_old_words = set(strArray2)
+#
+#     for s1 in strArray:
+#         for s2 in strArray2:
+#             sim = w2v_sim(s1, s2)
+#             if sim:
+#                 valid_new_words.add(s1)
+#                 scores.append((s1, s2, sim))
+#     scores = sorted(scores, key=lambda x: x[2], reverse=True)
+#     counted = []
+#     for new_word, old_word, score in scores:
+#         if new_word in valid_new_words and old_word in valid_old_words:
+#             valid_new_words.remove(new_word)
+#             valid_old_words.remove(old_word)
+#             counted.append(score)
+#         if not valid_new_words or not valid_old_words:
+#             break
+#     # return sum(counted) / len(strArray) if strArray else 0
+#     return sum(counted) / len(counted) if counted else 0
+
+def is_reg_words(words):
+    tmp = ''.join(str(i).lower()+' ' for i in words)
+    registerwords = ['join', 'register', 'sign up', 'create account']
+    for w in registerwords:
+        if w in tmp:
+            return True
+    return False
+
+
 def arraySim(strArray, strArray2):
     scores = []
     # valid_new_words = []
     # valid_old_words = copy.deepcopy(strArray2)
     valid_new_words = set()
     valid_old_words = set(strArray2)
+    if is_reg_words(strArray) and is_reg_words(strArray2):
+        return 1
 
     for s1 in strArray:
         for s2 in strArray2:
@@ -51,6 +87,7 @@ def arraySim(strArray, strArray2):
             break
     # return sum(counted) / len(strArray) if strArray else 0
     return sum(counted) / len(counted) if counted else 0
+
 
 
 def walkData(rootNode, elementsList):

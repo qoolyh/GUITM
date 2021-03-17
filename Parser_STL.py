@@ -81,11 +81,15 @@ def test_to_STL(test, SRC):
                 state.oracle = t
                 STL.append(state)
         elif t['event_type'] == 'gui':
-            if act == STL[-1].act: # continuous inputs
-                STL[-1].edges.append(t)
-            else:
+            if len(STL) == 0:
                 state.edges = [t]
                 STL.append(state)
+            else:
+                if act == STL[-1].act: # continuous inputs
+                    STL[-1].edges.append(t)
+                else:
+                    state.edges = [t]
+                    STL.append(state)
         elif t['event_type'] == 'SYS_EVENT':
             act = STL[-1 - 1].act
             state = deepcopy(SRC[act])

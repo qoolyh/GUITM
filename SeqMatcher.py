@@ -4,7 +4,7 @@ import simCal
 
 DP_res = {}
 
-def basicDP(list1, list2, start1, start2, func, prev1, prev2, init=False):
+def basicDP(list1, list2, start1, start2, func, prev1, prev2, IO, init=False):
     if init:
         DP_res.clear()
         # max, record = basicDP(list1, list2, 0, 0, func, 0, 0)
@@ -29,6 +29,10 @@ def basicDP(list1, list2, start1, start2, func, prev1, prev2, init=False):
     rec_i = []
     score_i = 0
     match_i = -1
+    if start2 == len(list2)-1: # which means elements in list1 will be banned
+        for n in range(start1+1, len(list1)):
+            record.append(-1)
+        return max, record
     if i < len(list1):
         for j in range(start2 + 1, len(list2)):
             key = str(i) + '_' + str(j)
@@ -39,12 +43,17 @@ def basicDP(list1, list2, start1, start2, func, prev1, prev2, init=False):
                     record = record_i
                 continue
             if i == len(list1)-1:
-                return SeqMatcher.jump_cost(i - prev1, j - prev2), [j]
+                if IO:
+                    return SeqMatcher.jump_cost(i - prev1, len(list2) - prev2 -1), [len(list2)-1]
+                else:
+                    return SeqMatcher.jump_cost(i - prev1, j - prev2), [j]
+            if isinstance(list2[j], list):
+                a=1
             v = func(list1[i], list2[j]) * SeqMatcher.jump_cost(i - prev1, j - prev2)
             # v = func(list1[i], list2[j])
-            left, left_rec = basicDP(list1, list2, i, j, func, i, j)  # i matched to j, so prev1 =i, prev2 = j
-            left_ban, left_rec_ban = basicDP(list1, list2, i, start2, func, prev1, prev2)  # ban i, so prev1 kept
-            left_kpt, left_rec_kpt = basicDP(list1, list2, start1, j, func, prev1, prev2)
+            left, left_rec = basicDP(list1, list2, i, j, func, i, j, IO)  # i matched to j, so prev1 =i, prev2 = j
+            left_ban, left_rec_ban = basicDP(list1, list2, i, start2, func, prev1, prev2, IO)  # ban i, so prev1 kept
+            left_kpt, left_rec_kpt = basicDP(list1, list2, start1, j, func, prev1, prev2, IO)
             if len(list1[i].edges)>0:
                 tmp = list2[j].target[-1]
                 if isinstance(tmp, list):
@@ -84,13 +93,18 @@ class SeqMatcher:
             max = 0
             res = []
             for k in range(-1, len(tgt_STL)-1):
-                tmp_score , tmp_res = basicDP(src_STL, tgt_STL, -1, k, func, 0, k+1, True)
+                tmp_score , tmp_res = basicDP(src_STL, tgt_STL, -1, k, func, 0, k+1, False, True)
                 if tmp_score > max:
                     max = tmp_score
                     res = tmp_res
             # res.append(len(tgt_STL) - 1)
         else:
-            score, res = basicDP(src_STL, tgt_STL, -1, -1, func, 0, 0, True)
+            tmp_src = src_STL[0:len(src_STL)-1]
+            if len(tmp_src)!= 0:
+                score, res = basicDP(tmp_src, tgt_STL, -1, -1, func, 0, 0, True, True)
+                res.append(-1)
+            else:
+                score, res = basicDP(src_STL, tgt_STL, -1, -1, func, 0, 0, True, True)
         return score, res
 
     @staticmethod
