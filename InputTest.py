@@ -349,38 +349,6 @@ def main():
     for r in MRES:
         print(r)
 
-# for p in IO_paths:
-#     io_pairs = IO_paths[p]
-#     print('_____________', p)
-#     i = 1
-#     for desitination_paths in io_pairs:
-#         print('path____', i)
-#         i += 1
-#         for destination in desitination_paths:
-#             v = simCal.o_sim(STL[-1], tg[destination])
-#             print(v)
-# paths = desitination_paths[destination]
-# for path in paths:
-#     print('one path')
-#     for edge in path:
-#        print(edge.fromGraph, edge.toGraph, edge.target)
-#
-# for r in res:
-#     tgt_ipt = r
-#     src_ipts = res[r]
-#     print(tgt_ipt, src_ipts)
-#     paths_r = Util.getPath(start_tgt, r, visited)
-#     print('from ',start_tgt, ' to', r)
-#     if hasattr(tg[r], 'binding'):
-#         r_binding = tg[r].binding
-#         for k in r_binding:
-#             paths_2 = Util.getPath(r, k, [])
-#             print('__from ', r, ' to', k)
-#             for pr in paths_2[1]:
-#                 for e in pr:
-#                     print(e.fromGraph, e.toGraph)
-#                 print('____________')
-
 
 def initArray(l, v):
     a = []
@@ -440,21 +408,6 @@ def encode(SI_res, ipt_res, IO_res, key, SI_path_src, IO_path_src):
                     else:
                         match = -1
             MRES[i] = match
-    # for n in SI_res[key[0]][1]:
-    #     if n != -1:
-    #         evt = SI_res[key[0]][2][n].target[-1]
-    #         if isinstance(evt, list):
-    #             evt = evt[-1]
-    #         res.append(evt)
-    # res.extend(ipt_res[key[0]])
-    # if key[0] != key[1]:
-    #     res.extend(ipt_res[key[1]])
-    # for n in IO_res[key[1]][1]:
-    #     if n != -1:
-    #         evt = IO_res[key[1]][2][n].target[-1]
-    #         if isinstance(evt, list):
-    #             evt = evt[-1]
-    #         res.append(evt)
     return res
 
 
@@ -525,90 +478,6 @@ def divide_STL(STL, res):
     n_ipt_tgt = len(res)
     n_ipt_src = len(ipt_states)
     return SI_paths, IO_paths
-
-
-#
-#
-# DP_res = {}
-#
-#
-# def basicDP(list1, list2, start1, start2, func, init=False):
-#     if init:
-#         DP_res.clear()
-#     max = 0
-#     record = []
-#     i = start1 + 1
-#     rec_i = []
-#     score_i = 0
-#     match_i = -1
-#     if i <len(list1):
-#         for j in range(start2 + 1, len(list2)):
-#             key = str(i)+'_'+str(j)
-#             if key in DP_res:
-#                 max_i, record_i = DP_res[key]
-#                 if max< max_i:
-#                     max = max_i
-#                     record = record_i
-#                 continue
-#             v = func(list1[i], list2[j])
-#             left, left_rec = basicDP(list1, list2, i, j, func)
-#             left_ban, left_rec_ban = basicDP(list1, list2, i, start2, func)
-#             left_kpt, left_rec_kpt = basicDP(list1, list2, start1, j, func)
-#             if max <= v+left:
-#                 max = v+left
-#                 record = [j]+left_rec
-#             if max <= left_kpt:
-#                 max = left_kpt
-#                 record = left_rec_kpt
-#             if max <= left_ban:
-#                 max = left_ban
-#                 record = [-1]+left_rec_ban
-#             DP_res.update({key:[max, record]})
-#     return max, record
-#
-#
-# def find_best_event(path, src_evt):
-#     best_path = []
-#     matched_event = []
-#     max_score = -1
-#     if isinstance(path, list):
-#         for edge in path:
-#             jump = len(path)
-#             jump_cost = math.log(abs(jump - 1) + 1, 2) + 1
-#             event = edge.target
-#             if isinstance(event, list):
-#                 event = event[-1]
-#             if isinstance(event, list):
-#                 event = event[-1]
-#             esim_curr = simCal.single_elem_sim(src_evt, event) / jump_cost
-#             if esim_curr > max_score:
-#                 max_score = esim_curr
-#                 matched_event = [event]
-#                 best_path = path
-#     else:
-#         edge = path
-#         jump = 1
-#         jump_cost = math.log(abs(jump - 1) + 1, 2) + 1
-#         event = edge.target
-#         if isinstance(event, list):
-#             event = event[-1]
-#         esim_curr = simCal.single_elem_sim(src_evt, event) / jump_cost
-#         if esim_curr > max_score:
-#             max_score = esim_curr
-#             matched_event = [event]
-#             best_path = [path]
-#     return max_score, best_path, matched_event
-#
-#
-# def subSeq(seq, start):
-#     res = {}
-#     find = False
-#     for key in seq:
-#         if key == start:
-#             find = True
-#             if find:
-#                 res.update({key: seq[key]})
-#     return res
 
 
 def oracle_binding(STL):
@@ -730,41 +599,3 @@ def moreThanOneIpt(STL):
 
 main()
 
-# for si in sg:
-#     if 'CreateAccountActivity' in si:
-#         for ti in tg:
-#             v = simCal.gSim_baseline(sg[si].elements, tg[ti].elements)
-#             print(si, ti)
-#             print(v)
-#         break
-
-
-# ipt_p = 'data/a3_b31/a31.json'
-# tgt_p = 'data/a3_b31/a32.json'
-# # ans = getAnswer(tgt_p)
-# ipt_file = open(ipt_p, "rb")
-# ipts = json.load(ipt_file)
-# ipt_file.close()
-# tgt_file = open(tgt_p, "rb")
-# tgts = json.load(tgt_file)
-# tgt_file.close()
-# STG = parseJson2STG('data/a3_b31/tar/a32/activitiesSummary.json')
-#
-# ipt = []
-# tgt = []
-# egs = getInputEdges(STG)
-# for eg in egs:
-#     print(egs[eg])
-
-
-# for i in ipts:
-#     if 'send_keys' in i['action'][0]:
-#         ipt.append(i)
-# for i in tgts:
-#     if 'send_keys' in i['action'][0]:
-#         tgt.append(i)
-#
-# res = priority_rank_A(ipt, [tgt[1]])
-# for r in res:
-#     print(r)
-# print(res)

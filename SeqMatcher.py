@@ -7,22 +7,6 @@ DP_res = {}
 def basicDP(list1, list2, start1, start2, func, prev1, prev2, IO, init=False):
     if init:
         DP_res.clear()
-        # max, record = basicDP(list1, list2, 0, 0, func, 0, 0)
-        # tmp_record = [0] + record
-        # DP_res.update({'0_0': tmp_record})
-        # return max, tmp_record
-    # if start1 == len(list1) - 2 or start2 == len(list2) - 2:
-    #     jump1 = start1 - prev1 + 1
-    #     jump2 = start2 - prev2 + 1
-    #     key = str(start1 + 1) + '_' + str(start2 + 1)
-    #     if key in DP_res:
-    #         max, record = DP_res[key]
-    #     else:
-    #         max = jump_cost(jump1, jump2)
-    #         record = []
-    #         for n in range(start1 + 1, len(list1)):
-    #             record.append(-1)
-    #     return max, record
     max = 0
     record = []
     i = start1 + 1
@@ -47,8 +31,6 @@ def basicDP(list1, list2, start1, start2, func, prev1, prev2, IO, init=False):
                     return SeqMatcher.jump_cost(i - prev1, len(list2) - prev2 -1), [len(list2)-1]
                 else:
                     return SeqMatcher.jump_cost(i - prev1, j - prev2), [j]
-            if isinstance(list2[j], list):
-                a=1
             v = func(list1[i], list2[j]) * SeqMatcher.jump_cost(i - prev1, j - prev2)
             # v = func(list1[i], list2[j])
             left, left_rec = basicDP(list1, list2, i, j, func, i, j, IO)  # i matched to j, so prev1 =i, prev2 = j
