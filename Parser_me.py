@@ -1,8 +1,11 @@
 import json
+from copy import deepcopy
+
 from Element import Element
 from Edge import Edge
 from Graph import Graph
 import numpy
+from Util import find_out
 
 
 def parseJson2STG(jsonPath): # format: activity: graph_obj
@@ -209,3 +212,90 @@ def parse_test_file(json_dir):
             test_list.append(t)
             idx += 1
     return test_list
+
+
+def test_to_STL(test, SRC):
+    STL = []
+    acts = {}
+    idx = 0
+    for t in test:
+        t['idx'] = idx
+        act = t['activity']
+        state = deepcopy(SRC[act])
+        t['isInput'] = ('send_keys' in t['action'][0])
+        if t['event_type'] == 'oracle':
+            t['isElem'] = 'element' in t['action'][0]
+            t['isTxt'] = 'text' in t['action'][0]
+            if act in acts:
+                i = acts['act'][-1]
+                t['disappear'] = 'invisible' in t['action'][0]
+                if t['disappear']:
+                    o_bind = trace_back(STL, t, len(STL) - 1)
+                    t['trace_back'] = o_bind
+                STL[i].oracle = t
+            else:
+                state.edges = []
+                state.oracle = t
+                STL.append(state)
+        elif t['event_type'] == 'gui':
+            if len(STL) == 0:
+                state.edges = [t]
+                STL.append(state)
+            else:
+                if act == STL[-1].act: # continuous inputs
+                    STL[-1].edges.append(t)
+                else:
+                    state.edges = [t]
+                    STL.append(state)
+        elif t['event_type'] == 'SYS_EVENT':
+            act = STL[-1 - 1].act
+            state = deepcopy(SRC[act])
+            state.edges = [t]
+            STL.append(state)
+        else:
+            case4 = 0
+        idx+=1
+    update_bind(STL)
+    return STL
+
+
+
+def update_bind(STL):
+    for i in range(0, len(STL)):
+        state = STL[i]
+        if len(state.edges) > 1:
+            inputs = state.edges[0:len(state.edges) - 1]
+            for ipt in inputs:
+                exist, idx = find_in_STL(ipt['action'][1], STL, i + 1)
+                if exist:
+                    STL[i].IObind_to = idx
+                    STL[idx].IObind_from = i
+
+
+def find_in_STL(text, STL, idx):
+    for i in range(idx, len(STL)):
+        if find_out(text, STL[i]):
+            return True, i
+    return False, -1
+
+
+def trace_back(STL, t, idx):
+    find = False
+    for element in STL[idx].elements:
+        if t['isTxt'] and element.text == t['action'][3]:
+            find = True
+        elif t['isElem']:
+            idf1 = t['resource-id'] + ' ' + t['content-desc']
+            idf2 = element.id + ' ' + element.desc
+            find = idf1 == idf2
+        if find:
+            reverse_oracle = deepcopy(t)
+            reverse_oracle['disappear'] = False
+            reverse_oracle['activity'] = STL[idx].act
+            STL[idx].oracle = reverse_oracle
+            return idx
+    if not find:
+        if idx > 0:
+            return trace_back(STL, t, idx - 1)
+        else:
+            return -1

@@ -1,6 +1,6 @@
 import json
 
-from Parser_STL import test_to_STL
+from Parser_me import test_to_STL
 from Parser_me import parseJson2STG
 
 ans = {}

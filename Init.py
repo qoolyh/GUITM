@@ -5,7 +5,7 @@ import numpy
 
 import Parser_me as Parser
 from GlobleData import Gol
-from Parser_STL import test_to_STL
+from Parser_me import test_to_STL
 
 
 def initAll(src_json, tar_json, test_json, sim_json, pair, tgt_start, cate, src, tgt):

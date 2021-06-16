@@ -14,7 +14,7 @@ import Util
 from StrUtil import StrUtil
 import simCal
 from InputGenerator import get_input, getAnswer
-from Parser_STL import test_to_STL
+from Parser_me import test_to_STL
 from Parser_me import parseJson2STG
 from simCal import single_elem_sim
 
@@ -230,11 +230,11 @@ def rank(ipts, target):
 def main():
     global STG
     global STL
-    cate = '2'
-    type = '1'
-    folder = 'a' + cate + '_b' + cate + type
-    src = 'a' + cate + '3'
-    tgt = 'a' + cate + '1'
+    cate = '2'  #设置测试迁移的app种类 （可选1-5，详见data文件夹）
+    type = '1'  #设置测试迁移类别(1或2共两类)
+    folder = 'a' + cate + '_b' + cate + type #这里设置data文件夹，这里所选的为data/a2_b21
+    src = 'a' + cate + '3' #后缀为相应的app，这里所选提供测试的App为a23，其测试见data/a2_b21/a23.json文件
+    tgt = 'a' + cate + '1' #后缀为相应的app，这里所选接受测试的App为a21，详见data/a2_b21/tar/a21/activitiesSummary.json文件
 
     sdir = 'data/' + folder + '/tar/' + src + '/activitiesSummary.json'
     tdir = 'data/' + folder + '/tar/' + tgt + '/activitiesSummary.json'
